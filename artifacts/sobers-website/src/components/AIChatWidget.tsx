@@ -111,14 +111,14 @@ type InputMode = { search: boolean; think: boolean; canvas: boolean }
    Trusted logos shown above input until first message
 ───────────────────────────────────────────── */
 const CHAT_LOGOS = [
-  { src: logoAirbnb,      alt: "Airbnb",       height: 28 },
-  { src: logoRightmove,   alt: "Rightmove",    height: 13 },
-  { src: logoBooking,     alt: "Booking.com",  height: 13 },
-  { src: logoZoopla,      alt: "Zoopla",       height: 17 },
-  { src: logoKnightFrank, alt: "Knight Frank", height: 26 },
-  { src: logoSavills,     alt: "Savills",      height: 24 },
-  { src: logoCBRE,        alt: "CBRE",         height: 15 },
-  { src: logoJLL,         alt: "JLL",          height: 19 },
+  { src: logoAirbnb,      alt: "Airbnb",       height: 48 },
+  { src: logoRightmove,   alt: "Rightmove",    height: 26 },
+  { src: logoBooking,     alt: "Booking.com",  height: 24 },
+  { src: logoZoopla,      alt: "Zoopla",       height: 30 },
+  { src: logoKnightFrank, alt: "Knight Frank", height: 46 },
+  { src: logoSavills,     alt: "Savills",      height: 44 },
+  { src: logoCBRE,        alt: "CBRE",         height: 28 },
+  { src: logoJLL,         alt: "JLL",          height: 34 },
 ]
 
 const chatLogoTransitionVariants = {
@@ -169,7 +169,7 @@ function ChatTrustedLogos({ visible }: { visible: boolean }) {
                 },
                 ...chatLogoTransitionVariants,
               }}
-              className="grid grid-cols-4 gap-x-4 gap-y-3 transition-all duration-500 group-hover:opacity-50 group-hover:[filter:blur(2px)]"
+              className="grid grid-cols-4 gap-x-3 gap-y-5 transition-all duration-500 group-hover:opacity-50 group-hover:[filter:blur(2px)]"
             >
               {CHAT_LOGOS.map((logo) => (
                 <div key={logo.alt} className="flex items-center justify-center">
