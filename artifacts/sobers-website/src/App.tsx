@@ -1,12 +1,44 @@
+import { useRef, type RefObject } from "react"
+import { motion, useScroll, useTransform } from "motion/react"
 import { HeroSection } from "@/components/HeroSection"
 import { CinematicFooter } from "@/components/CinematicFooter"
 import { ProgressiveFluxLoader } from "@/components/ui/progressive-flux-loader"
 import { ProgressiveBlur } from "@/components/ui/progressive-blur"
+import { TiltCard } from "@/components/ui/TiltCard"
+import { GlowCard } from "@/components/ui/GlowCard"
+
+function FadingBlur({
+  containerRef,
+  position = "bottom",
+  height = "25%",
+}: {
+  containerRef: RefObject<HTMLElement | HTMLDivElement | null>
+  position?: "top" | "bottom"
+  height?: string
+}) {
+  const { scrollYProgress } = useScroll({
+    target: containerRef as RefObject<HTMLElement>,
+    offset: ["start start", "end start"],
+  })
+  const opacity = useTransform(scrollYProgress, [0.45, 0.8], [1, 0])
+
+  return (
+    <motion.div style={{ opacity }} className="pointer-events-none">
+      <ProgressiveBlur position={position} height={height} />
+    </motion.div>
+  )
+}
 
 export default function App() {
+  const heroRef = useRef<HTMLDivElement>(null)
+  const roiRef = useRef<HTMLElement>(null)
+  const conversionRef = useRef<HTMLElement>(null)
+
   return (
     <div className="relative w-full bg-background text-foreground overflow-x-hidden font-sans dark">
-      <div className="relative">
+
+      {/* ── Hero ── */}
+      <div ref={heroRef} className="relative">
         <HeroSection
           title="Property Marketing Reimagined"
           subtitle={{
@@ -24,51 +56,50 @@ export default function App() {
             darkLineColor: "#2a2a2a",
           }}
         />
-        <ProgressiveBlur position="bottom" height="25%" />
+        <FadingBlur containerRef={heroRef} position="bottom" height="25%" />
       </div>
 
       {/* ── ROI Pull Quote ── */}
-      <section className="relative py-32 px-6 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[300px] rounded-full bg-purple-600/10 blur-[100px]" />
-        </div>
-        <div className="relative max-w-4xl mx-auto text-center">
-          <div className="text-6xl text-purple-400/30 font-serif leading-none mb-6 select-none">"</div>
-          <p className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight mb-6">
-            If it even gets you{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-orange-200">
-              one extra booking
-            </span>
-            , it pays for itself{" "}
-            <span className="relative inline-block">
-              10x over.
-              <span className="absolute -bottom-1 left-0 w-full h-[3px] bg-gradient-to-r from-purple-400 to-orange-300 rounded-full" />
-            </span>
-          </p>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto mt-8">
-            One night's revenue from a property typically covers the entire cost of a professional 3D tour — and that tour keeps working for you every single day it's live.
-          </p>
-          <div className="mt-10 flex justify-center">
-            <a href="#" className="shiny-cta !py-3 !px-8 !text-base">
-              <span>Book a Free Demo</span>
-            </a>
-          </div>
-        </div>
-
-        <ProgressiveBlur position="bottom" height="25%" />
+      <section ref={roiRef} className="relative py-32 px-6 overflow-visible">
+        <TiltCard className="max-w-4xl mx-auto">
+          <GlowCard
+            customSize
+            glowColor="purple"
+            className="w-full px-12 py-16 md:px-20 md:py-20 text-center"
+          >
+            <div className="text-6xl text-purple-400/30 font-serif leading-none mb-6 select-none">"</div>
+            <p className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight mb-6">
+              If it even gets you{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-orange-200">
+                one extra booking
+              </span>
+              , it pays for itself{" "}
+              <span className="relative inline-block">
+                10x over.
+                <span className="absolute -bottom-1 left-0 w-full h-[3px] bg-gradient-to-r from-purple-400 to-orange-300 rounded-full" />
+              </span>
+            </p>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto mt-8">
+              One night's revenue from a property typically covers the entire cost of a professional 3D tour — and that tour keeps working for you every single day it's live.
+            </p>
+            <div className="mt-10 flex justify-center">
+              <a href="#" className="shiny-cta !py-3 !px-8 !text-base">
+                <span>Book a Free Demo</span>
+              </a>
+            </div>
+          </GlowCard>
+        </TiltCard>
+        <FadingBlur containerRef={roiRef} position="bottom" height="25%" />
       </section>
 
-      {/* ── Max Conversion to ∞ ── */}
-      <section className="relative py-32 px-6 overflow-hidden">
-        {/* background glows */}
+      {/* ── Max Conversion ── */}
+      <section ref={conversionRef} className="relative py-32 px-6 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute left-1/4 top-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-blue-600/8 blur-[120px]" />
           <div className="absolute right-1/4 top-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-cyan-400/6 blur-[100px]" />
         </div>
 
         <div className="relative max-w-3xl mx-auto text-center">
-          {/* eyebrow */}
-          {/* The loader — looping, property-conversion phases */}
           <ProgressiveFluxLoader
             duration={8}
             loop
@@ -84,16 +115,17 @@ export default function App() {
             textClassName="text-white/80"
             className="max-w-lg mx-auto"
           />
-
         </div>
 
-        <ProgressiveBlur position="bottom" height="25%" />
+        <FadingBlur containerRef={conversionRef} position="bottom" height="25%" />
       </section>
 
+      {/* ── Footer ── */}
       <div className="relative">
         <CinematicFooter />
         <ProgressiveBlur position="top" height="20%" />
       </div>
+
     </div>
   )
 }
