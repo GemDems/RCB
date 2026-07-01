@@ -13,10 +13,6 @@ export default function App() {
         description="A private, elegant companion for your recovery journey — tracking your 12 steps, connecting you with your sponsor, and celebrating every single day."
         ctaText="Download Free"
         ctaHref="#"
-        bottomImage={{
-          light: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=1200&q=80",
-          dark: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=1200&q=80",
-        }}
         gridOptions={{
           angle: 65,
           opacity: 0.4,
