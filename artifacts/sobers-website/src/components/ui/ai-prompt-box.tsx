@@ -401,13 +401,14 @@ const CustomDivider: React.FC = () => (
 
 interface PromptInputBoxProps {
   onSend?: (message: string, files?: File[]) => void
+  onStop?: () => void
   isLoading?: boolean
   placeholder?: string
   className?: string
   onModeChange?: (mode: { search: boolean; think: boolean; canvas: boolean }) => void
 }
 export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref: React.Ref<HTMLDivElement>) => {
-  const { onSend = () => {}, isLoading = false, placeholder = "Type your message here...", className, onModeChange } = props
+  const { onSend = () => {}, onStop, isLoading = false, placeholder = "Type your message here...", className, onModeChange } = props
   const [input, setInput] = React.useState("")
   const [files, setFiles] = React.useState<File[]>([])
   const [filePreviews, setFilePreviews] = React.useState<{ [key: string]: string }>({})
@@ -635,7 +636,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
               variant="default"
               size="icon"
               className="h-8 w-8 rounded-full bg-white hover:bg-white/80 text-[#1F2023]"
-              onClick={() => {}}
+              onClick={() => onStop?.()}
             >
               <Square className="h-4 w-4 fill-[#1F2023] animate-pulse" />
             </Button>

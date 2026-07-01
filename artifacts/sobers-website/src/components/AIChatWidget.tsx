@@ -83,7 +83,7 @@ function useFormDimensions() {
    Constants
 ───────────────────────────────────────────── */
 const SPEED = 1
-const MIN_THINK_MS = 11000
+const MIN_THINK_MS = 0
 const ORB_TONES = { base: "oklch(22.64% 0 0)" }
 
 const COOKING_PHASES = [
@@ -314,6 +314,7 @@ function InputForm({
   onModeChange,
   bottomRef,
   onSend,
+  onStop,
   formW,
   formH,
 }: {
@@ -328,6 +329,7 @@ function InputForm({
   onModeChange: (m: InputMode) => void
   bottomRef: React.RefObject<HTMLDivElement | null>
   onSend: (text: string) => void
+  onStop: () => void
   formW: number
   formH: number
 }) {
@@ -463,6 +465,7 @@ function InputForm({
             <div className="shrink-0 mt-0.5 [&_.rounded-3xl]:rounded-xl [&_.p-2]:p-1.5">
               <PromptInputBox
                 onSend={(text) => onSend(text)}
+                onStop={onStop}
                 isLoading={streaming}
                 placeholder="Ask me anything…"
                 className="!bg-background !border-border"
@@ -561,6 +564,16 @@ export function AIChatWidget() {
   const handleModeChange = React.useCallback((m: InputMode) => {
     setInputMode(m)
     if (!m.think) setGrokExpanded(false)
+  }, [])
+
+  /* Stop — abort in-flight stream, keep any partial content already shown */
+  const handleStop = React.useCallback(() => {
+    abortRef.current?.abort()
+    if (cookingTimerRef.current) clearTimeout(cookingTimerRef.current)
+    if (phaseTimerRef.current) clearInterval(phaseTimerRef.current)
+    setThinking(false)
+    setStreaming(false)
+    setCookingVisible(false)
   }, [])
 
   /* Send — enforces MIN_THINK_MS */
@@ -685,6 +698,7 @@ export function AIChatWidget() {
             onModeChange={handleModeChange}
             bottomRef={bottomRef}
             onSend={handleSend}
+            onStop={handleStop}
             formW={formW}
             formH={formH}
           />
