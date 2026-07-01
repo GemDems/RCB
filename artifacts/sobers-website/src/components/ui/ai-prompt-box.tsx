@@ -3,7 +3,8 @@
 import React from "react"
 import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { ArrowUp, Square, X, StopCircle, Mic, Globe, BrainCog } from "lucide-react"
+import { Square, X, Globe, BrainCog } from "lucide-react"
+import SendButton from "@/components/ui/send-button"
 import { motion, AnimatePresence } from "framer-motion"
 
 import { cn } from "@/lib/utils"
@@ -411,7 +412,6 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
   const [files, setFiles] = React.useState<File[]>([])
   const [filePreviews, setFilePreviews] = React.useState<{ [key: string]: string }>({})
   const [selectedImage, setSelectedImage] = React.useState<string | null>(null)
-  const [isRecording, setIsRecording] = React.useState(false)
   const [showSearch, setShowSearch] = React.useState(false)
   const [showThink, setShowThink] = React.useState(false)
   const [showCanvas, setShowCanvas] = React.useState(false)
@@ -513,14 +513,6 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
     }
   }
 
-  const handleStartRecording = () => console.log("Started recording")
-
-  const handleStopRecording = (duration: number) => {
-    console.log(`Stopped recording after ${duration} seconds`)
-    setIsRecording(false)
-    onSend(`[Voice message - ${duration} seconds]`, [])
-  }
-
   const hasContent = input.trim() !== "" || files.length > 0
 
   return (
@@ -532,46 +524,30 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
         onSubmit={handleSubmit}
         className={cn(
           "w-full bg-[#1F2023] border-[#444444] shadow-[0_8px_30px_rgba(0,0,0,0.24)] transition-all duration-300 ease-in-out",
-          isRecording && "border-red-500/70",
           className,
         )}
-        disabled={isLoading || isRecording}
+        disabled={isLoading}
         ref={ref || promptBoxRef}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
 
-        <div className={cn("transition-all duration-300", isRecording ? "h-0 overflow-hidden opacity-0" : "opacity-100")}>
-          <PromptInputTextarea
-            placeholder={
-              showSearch
-                ? "Search the web..."
-                : showThink
-                ? "Think deeply..."
-                : showCanvas
-                ? "Create on canvas..."
-                : placeholder
-            }
-            className="text-base"
-          />
-        </div>
-
-        {isRecording && (
-          <VoiceRecorder
-            isRecording={isRecording}
-            onStartRecording={handleStartRecording}
-            onStopRecording={handleStopRecording}
-          />
-        )}
+        <PromptInputTextarea
+          placeholder={
+            showSearch
+              ? "Search the web..."
+              : showThink
+              ? "Think deeply..."
+              : showCanvas
+              ? "Create on canvas..."
+              : placeholder
+          }
+          className="text-base"
+        />
 
         <PromptInputActions className="flex items-center justify-between gap-2 p-0 pt-2">
-          <div
-            className={cn(
-              "flex items-center gap-1 transition-opacity duration-300",
-              isRecording ? "opacity-0 invisible h-0" : "opacity-100 visible",
-            )}
-          >
+          <div className="flex items-center gap-1">
               <div className="flex items-center">
               <button
                 type="button"
@@ -654,40 +630,18 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
             </div>
           </div>
 
-          <PromptInputAction
-            tooltip={
-              isLoading ? "Stop generation" : isRecording ? "Stop recording" : hasContent ? "Send message" : "Voice message"
-            }
-          >
+          {isLoading ? (
             <Button
               variant="default"
               size="icon"
-              className={cn(
-                "h-8 w-8 rounded-full transition-all duration-200",
-                isRecording
-                  ? "bg-transparent hover:bg-gray-600/30 text-red-500 hover:text-red-400"
-                  : hasContent
-                  ? "bg-white hover:bg-white/80 text-[#1F2023]"
-                  : "bg-transparent hover:bg-gray-600/30 text-[#9CA3AF] hover:text-[#D1D5DB]",
-              )}
-              onClick={() => {
-                if (isRecording) setIsRecording(false)
-                else if (hasContent) handleSubmit()
-                else setIsRecording(true)
-              }}
-              disabled={isLoading && !hasContent}
+              className="h-8 w-8 rounded-full bg-white hover:bg-white/80 text-[#1F2023]"
+              onClick={() => {}}
             >
-              {isLoading ? (
-                <Square className="h-4 w-4 fill-[#1F2023] animate-pulse" />
-              ) : isRecording ? (
-                <StopCircle className="h-5 w-5 text-red-500" />
-              ) : hasContent ? (
-                <ArrowUp className="h-4 w-4 text-[#1F2023]" />
-              ) : (
-                <Mic className="h-5 w-5 text-[#1F2023] transition-colors" />
-              )}
+              <Square className="h-4 w-4 fill-[#1F2023] animate-pulse" />
             </Button>
-          </PromptInputAction>
+          ) : (
+            <SendButton onClick={handleSubmit} disabled={false} />
+          )}
         </PromptInputActions>
       </PromptInput>
 
