@@ -105,7 +105,7 @@ const useFormCtx = () => React.useContext(FormCtx)
 
 interface Msg { role: "user" | "assistant"; content: string }
 
-const WELCOME = "Hi! I'm the Sobers AI — ask me anything about 3D walkthroughs, virtual tours, or how we help estate agents and Airbnb hosts book more. What would you like to know?"
+const WELCOME = "Hi! Ask me anything about 3D walkthroughs, virtual tours, or how we help you book more — whether you're an estate agent, property developer, or host on Airbnb, Vrbo, Booking.com, or any other platform. What would you like to know?"
 
 /* ─────────────────────────────────────────────
    Full Grok Panel — drops down when expanded
