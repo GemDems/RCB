@@ -3,8 +3,8 @@ import { cx } from "class-variance-authority"
 import { AnimatePresence, motion } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { AgentThinkingBadge } from "./ui/grok-agent-thinking-indicator"
-import { LoadingBreadcrumb } from "./ui/loading-breadcrumb"
+import { PromptInputBox } from "./ui/ai-prompt-box"
+import { SiriWave } from "./ui/siri-wave"
 
 /* ─────────────────────────────────────────────
    ColorOrb — CSS-only, styles live in index.css
@@ -150,14 +150,12 @@ function DockBar() {
    InputForm — exact structure + AI wired in
 ───────────────────────────────────────────── */
 function InputForm({
-  textareaRef,
   messages,
   streaming,
   thinking,
   bottomRef,
   onSend,
 }: {
-  textareaRef: React.RefObject<HTMLTextAreaElement | null>
   messages: Msg[]
   streaming: boolean
   thinking: boolean
@@ -165,33 +163,17 @@ function InputForm({
   onSend: (text: string) => void
 }) {
   const { triggerClose, showForm } = useFormCtx()
-  const btnRef = React.useRef<HTMLButtonElement>(null)
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const val = textareaRef.current?.value.trim() ?? ""
-    if (val) {
-      onSend(val)
-      if (textareaRef.current) textareaRef.current.value = ""
+  React.useEffect(() => {
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") triggerClose()
     }
-  }
-
-  function handleKeys(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Escape") triggerClose()
-    if (e.key === "Enter" && e.metaKey) {
-      e.preventDefault()
-      btnRef.current?.click()
-    }
-    // plain Enter also sends
-    if (e.key === "Enter" && !e.shiftKey && !e.metaKey) {
-      e.preventDefault()
-      btnRef.current?.click()
-    }
-  }
+    document.addEventListener("keydown", handleEscape)
+    return () => document.removeEventListener("keydown", handleEscape)
+  }, [triggerClose])
 
   return (
-    <form
-      onSubmit={handleSubmit}
+    <div
       className="absolute bottom-0"
       style={{ width: FORM_WIDTH, height: FORM_HEIGHT, pointerEvents: showForm ? "all" : "none" }}
     >
@@ -209,15 +191,7 @@ function InputForm({
               <p className="text-foreground z-2 ml-[38px] flex items-center gap-[6px] select-none text-sm">
                 Ask Agent
               </p>
-              <button
-                type="submit"
-                ref={btnRef}
-                disabled={streaming}
-                className="text-foreground right-4 mt-1 flex -translate-y-[3px] cursor-pointer items-center justify-center gap-1 rounded-[12px] bg-transparent pr-1 text-center select-none disabled:opacity-40"
-              >
-                <KeyHint>⌘</KeyHint>
-                <KeyHint className="w-fit">Enter</KeyHint>
-              </button>
+              <KeyHint className="mt-1 mr-1 -translate-y-[3px]">Esc</KeyHint>
             </div>
 
             {/* ── Message history (extension — sits above original textarea area) ── */}
@@ -237,25 +211,23 @@ function InputForm({
               ))}
 
               {thinking && (
-                <div className="flex flex-col gap-2 pl-1">
-                  <AgentThinkingBadge label="Thinking…" />
-                  <LoadingBreadcrumb label="Cooking up a response…" />
+                <div className="flex items-center justify-start pl-1">
+                  <SiriWave variant="wave" size={64} renderScale={1} className="rounded-xl" />
                 </div>
               )}
 
               <div ref={bottomRef} />
             </div>
 
-            {/* ── Textarea — exact replica ── */}
-            <textarea
-              ref={textareaRef}
-              placeholder="Ask me anything..."
-              name="message"
-              className="h-[72px] w-full shrink-0 resize-none scroll-py-2 rounded-md p-3 outline-0 text-[13px] bg-background border border-border placeholder:text-muted-foreground"
-              onKeyDown={handleKeys}
-              spellCheck={false}
-              disabled={streaming}
-            />
+            {/* ── PromptInputBox — replaces the original textarea ── */}
+            <div className="mt-1 shrink-0 [&_.rounded-3xl]:rounded-xl [&_.p-2]:p-1.5">
+              <PromptInputBox
+                onSend={(text) => onSend(text)}
+                isLoading={streaming}
+                placeholder="Ask me anything..."
+                className="!bg-background !border-border"
+              />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -274,7 +246,7 @@ function InputForm({
           </motion.div>
         )}
       </AnimatePresence>
-    </form>
+    </div>
   )
 }
 
@@ -283,7 +255,6 @@ function InputForm({
 ───────────────────────────────────────────── */
 export function AIChatWidget() {
   const wrapperRef = React.useRef<HTMLDivElement>(null)
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
   const bottomRef = React.useRef<HTMLDivElement>(null)
   const abortRef = React.useRef<AbortController | null>(null)
 
@@ -299,17 +270,11 @@ export function AIChatWidget() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, thinking])
 
-  /* Focus textarea on open */
-  React.useEffect(() => {
-    if (showForm) setTimeout(() => textareaRef.current?.focus(), 120)
-  }, [showForm])
-
   /* Click outside to close */
   React.useEffect(() => {
     function handler(e: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node) && showForm) {
         setShowForm(false)
-        textareaRef.current?.blur()
       }
     }
     document.addEventListener("mousedown", handler)
@@ -318,7 +283,6 @@ export function AIChatWidget() {
 
   const triggerClose = React.useCallback(() => {
     setShowForm(false)
-    textareaRef.current?.blur()
   }, [])
 
   const triggerOpen = React.useCallback(() => {
@@ -429,7 +393,6 @@ export function AIChatWidget() {
         <FormCtx.Provider value={ctx}>
           <DockBar />
           <InputForm
-            textareaRef={textareaRef}
             messages={messages}
             streaming={streaming}
             thinking={thinking}
