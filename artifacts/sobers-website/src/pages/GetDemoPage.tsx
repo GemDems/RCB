@@ -319,6 +319,9 @@ export default function GetDemoPage() {
   const [modalStatus, setModalStatus]         = useState<"closed" | "loading" | "error" | "success">("closed");
   const [modalErrorMessage, setModalErrorMessage] = useState("");
 
+  // only show listing domain error after the user attempts to continue
+  const [listingSubmitAttempted, setListingSubmitAttempted] = useState(false);
+
   const confettiRef  = useRef<ConfettiRef>(null);
   const contactRef   = useRef<HTMLInputElement>(null);
   const nameRef      = useRef<HTMLInputElement>(null);
@@ -374,8 +377,12 @@ export default function GetDemoPage() {
   };
 
   const handleProgressStep = () => {
-    if (authStep === "listing" && isListingValid) setAuthStep("contact");
-    else if (authStep === "contact" && isContactValid) setAuthStep("name");
+    if (authStep === "listing") {
+      if (isListingValid) setAuthStep("contact");
+      else setListingSubmitAttempted(true);
+    } else if (authStep === "contact" && isContactValid) {
+      setAuthStep("name");
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -621,7 +628,7 @@ export default function GetDemoPage() {
                       </div>
                       {/* Domain validation error */}
                       <AnimatePresence>
-                        {listingUrl.trim().length >= 5 && !isDomainOk && (
+                        {listingSubmitAttempted && listingUrl.trim().length >= 5 && !isDomainOk && (
                           <motion.p
                             key="domain-error"
                             initial={{ opacity: 0, y: -4 }}
