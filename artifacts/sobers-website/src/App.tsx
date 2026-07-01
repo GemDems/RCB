@@ -66,10 +66,6 @@ export default function App() {
             Conversion Pipeline
           </p>
 
-          <p className="text-gray-400 text-lg max-w-xl mx-auto mb-16">
-            Watch cold traffic move through every stage — from first glance to signed deal — powered by immersive 3D walkthroughs that do the selling for you.
-          </p>
-
           {/* The loader — looping, property-conversion phases */}
           <ProgressiveFluxLoader
             duration={8}
