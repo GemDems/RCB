@@ -153,34 +153,68 @@ export function PixelOrb({
       width={size}
       height={size}
       aria-hidden="true"
-      className="pointer-events-none block shrink-0 rounded-full"
+      className="pointer-events-none block shrink-0 rounded-full ring-1 ring-border"
       style={{ width: size, height: size }}
     />
   );
 }
 
-export function AgentThinkingBadge({ label = "Deep thinking…" }: { label?: string }) {
+export interface AgentThinkingBadgeProps {
+  label?: string;
+  palette?: Palette;
+}
+
+export function AgentThinkingBadge({
+  label = "Agent Thinking",
+  palette = PALETTES[0],
+}: AgentThinkingBadgeProps) {
   return (
-    <div className="inline-flex h-[36px] items-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm px-1.5 py-1 pr-3">
-      <div className="flex h-[24px] items-center">
-        {[0, 1, 2, 3].map((i) => (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-label={label}
+      className="inline-flex h-[41px] items-center gap-2 rounded-full border border-border bg-background px-1.5 py-1 pr-3 text-foreground shadow-sm"
+    >
+      <PixelOrb palette={palette} />
+      <span className="whitespace-nowrap font-mono text-xs font-semibold tracking-[-0.02em]">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+export interface AgentsThinkingBadgeProps {
+  label?: string;
+  count?: number;
+}
+
+export function AgentsThinkingBadge({
+  label = "Agents thinking",
+  count = 4,
+}: AgentsThinkingBadgeProps) {
+  const safeCount = Math.max(1, Math.min(6, count));
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-label={label}
+      className="inline-flex h-[41px] items-center gap-2 rounded-full border border-border bg-background px-1.5 py-1 pr-3 text-foreground shadow-sm"
+    >
+      <div className="flex h-[29px] items-center">
+        {Array.from({ length: safeCount }).map((_, i) => (
           <div
             key={i}
             style={{
-              marginLeft: i === 0 ? 0 : -10,
+              marginLeft: i === 0 ? 0 : -12,
               zIndex: i + 1,
               animation: `orb-enter 300ms ${i * 110}ms both`,
             }}
           >
-            <PixelOrb
-              palette={PALETTES[i % PALETTES.length]}
-              seed={i + 1}
-              size={22}
-            />
+            <PixelOrb palette={PALETTES[i % PALETTES.length]} seed={i + 1} />
           </div>
         ))}
       </div>
-      <span className="whitespace-nowrap font-mono text-[10px] font-semibold tracking-wide text-white/50">
+      <span className="whitespace-nowrap font-mono text-xs font-semibold tracking-[-0.02em]">
         {label}
       </span>
     </div>

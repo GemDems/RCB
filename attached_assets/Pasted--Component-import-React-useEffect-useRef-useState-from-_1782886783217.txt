@@ -1,6 +1,11 @@
+// --- Component ---
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// ---------------------------------------------------------------------------
+// Loader Component - Animated SVG Path Loader
+// ---------------------------------------------------------------------------
 
 let cachedPathLength = 0;
 let stylesInjected = false;
@@ -82,14 +87,18 @@ const Loader = React.forwardRef<SVGSVGElement, LoaderProps>(
 
 Loader.displayName = "Loader";
 
+// ---------------------------------------------------------------------------
+// Loading Breadcrumb Component - Animated Loading State with Shimmer Text
+// ---------------------------------------------------------------------------
+
 interface LoadingBreadcrumbProps {
   text?: string;
   className?: string;
 }
 
-export function LoadingBreadcrumb({
-  text = "Cooking",
-  className
+export function LoadingBreadcrumb({ 
+  text = "Cooking", 
+  className 
 }: LoadingBreadcrumbProps) {
   return (
     <>
@@ -103,18 +112,18 @@ export function LoadingBreadcrumb({
           }
         }
       `}</style>
-
+      
       <div className={cn(
         "flex items-center gap-2 text-[15px] font-medium tracking-wide",
         className
       )}>
-        <Loader
-          size={18}
-          strokeWidth={2.5}
-          className="text-zinc-600 dark:text-zinc-200"
+        <Loader 
+          size={18} 
+          strokeWidth={2.5} 
+          className="text-zinc-600 dark:text-zinc-200" 
         />
-
-        <span
+        
+        <span 
           className="bg-clip-text text-transparent shimmer-text"
           style={{
             backgroundSize: "200% auto",
@@ -123,10 +132,10 @@ export function LoadingBreadcrumb({
         >
           {text}
         </span>
-
+        
         <ChevronRight size={16} className="text-zinc-400 dark:text-zinc-500" />
       </div>
-
+      
       <style>{`
         .shimmer-text {
           background-image: linear-gradient(
@@ -150,5 +159,46 @@ export function LoadingBreadcrumb({
         }
       `}</style>
     </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Example Usage
+// ---------------------------------------------------------------------------
+
+export default function LoadingBreadcrumbDemo() {
+  return (
+    <div className="flex min-h-screen items-center justify-center p-8">
+      <LoadingBreadcrumb />
+    </div>
+  );
+}
+
+// --- Demo ---
+import { LoadingBreadcrumb } from '@/components/ui/animated-loading-svg-text-shimmer';
+import { useTheme } from 'next-themes';
+import { Button } from '@/components/ui/button';
+import { Moon, Sun } from 'lucide-react';
+
+export default function App() {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <div className="flex min-h-screen items-center justify-center font-sans p-8">
+      {/* Theme Toggle */}
+      <div className="fixed top-4 right-4">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        >
+          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </div>
+
+      <LoadingBreadcrumb />
+    </div>
   );
 }

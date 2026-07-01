@@ -1,12 +1,14 @@
 import React from "react"
 import { cx } from "class-variance-authority"
 import { AnimatePresence, motion } from "motion/react"
+import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { PromptInputBox } from "./ui/ai-prompt-box"
 import { SiriWave } from "./ui/siri-wave"
 import { LoadingBreadcrumb } from "./ui/loading-breadcrumb"
-import { AgentThinkingBadge } from "./ui/grok-agent-thinking-indicator"
+import { AgentsThinkingBadge } from "./ui/grok-agent-thinking-indicator"
+import { TextShimmer } from "./ui/shimmer-text"
 
 /* ─────────────────────────────────────────────
    ColorOrb — CSS-only, styles live in index.css
@@ -61,44 +63,27 @@ const ColorOrb: React.FC<OrbProps> = ({
 }
 
 /* ─────────────────────────────────────────────
-   KeyHint kbd element
-───────────────────────────────────────────── */
-function KeyHint({ children, className }: { children: string; className?: string }) {
-  return (
-    <kbd
-      className={cx(
-        "text-foreground flex h-6 w-fit items-center justify-center rounded-sm border px-[6px] font-sans text-xs",
-        className,
-      )}
-    >
-      {children}
-    </kbd>
-  )
-}
-
-/* ─────────────────────────────────────────────
-   Thinking phase labels — rotates to signal depth
-───────────────────────────────────────────── */
-const THINKING_PHASES = [
-  "Analysing your question…",
-  "Cross-checking facts…",
-  "Stress-testing the answer…",
-  "Verifying every claim…",
-  "Optimising for clarity…",
-  "Double-checking logic…",
-  "Building the perfect response…",
-  "Almost ready…",
-]
-
-/* ─────────────────────────────────────────────
    Constants
 ───────────────────────────────────────────── */
-const FORM_WIDTH = 360
-const FORM_HEIGHT = 500
+const FORM_WIDTH = 380
+const FORM_HEIGHT = 520
 const SPEED = 1
 const MIN_THINK_MS = 5000
 
 const ORB_TONES = { base: "oklch(22.64% 0 0)" }
+
+/* ─────────────────────────────────────────────
+   Cooking phases — cycle through while thinking
+───────────────────────────────────────────── */
+const COOKING_PHASES = [
+  "Cooking",
+  "Cross-checking facts",
+  "Stress-testing answer",
+  "Verifying claims",
+  "Optimising response",
+  "Double-checking logic",
+  "Almost ready",
+]
 
 /* ─────────────────────────────────────────────
    Context
@@ -119,31 +104,36 @@ interface Msg { role: "user" | "assistant"; content: string }
 const WELCOME = "Hi! I'm the Sobers AI — ask me anything about 3D walkthroughs, virtual tours, or how we help estate agents and Airbnb hosts book more. What would you like to know?"
 
 /* ─────────────────────────────────────────────
-   Stacked Thinking Indicator
+   Stacked Thinking Indicator — exact component replicas, stacked
 ───────────────────────────────────────────── */
 function ThinkingIndicator({ phaseIndex }: { phaseIndex: number }) {
-  const label = THINKING_PHASES[phaseIndex % THINKING_PHASES.length]
+  const cookingLabel = COOKING_PHASES[phaseIndex % COOKING_PHASES.length]
 
   return (
-    <div className="flex flex-col items-start gap-2.5 pl-1 py-1">
+    <div className="flex flex-col items-start gap-3 py-1">
       {/* 1. Siri Wave */}
-      <SiriWave variant="wave" size={72} renderScale={0.85} className="rounded-lg" />
+      <SiriWave variant="wave" size={80} renderScale={0.85} className="rounded-lg" />
 
-      {/* 2. Cooking animation */}
+      {/* 2. Cooking breadcrumb — exact replica */}
       <AnimatePresence mode="wait">
         <motion.div
-          key={label}
-          initial={{ opacity: 0, y: 4 }}
+          key={cookingLabel}
+          initial={{ opacity: 0, y: 3 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.35 }}
+          exit={{ opacity: 0, y: -3 }}
+          transition={{ duration: 0.3 }}
         >
-          <LoadingBreadcrumb text={label} />
+          <LoadingBreadcrumb text={cookingLabel} />
         </motion.div>
       </AnimatePresence>
 
-      {/* 3. Grok pixel orbs */}
-      <AgentThinkingBadge label="Deep thinking…" />
+      {/* 3. Grok AgentsThinkingBadge — exact replica with stagger drop-in */}
+      <AgentsThinkingBadge label="Agents thinking" count={4} />
+
+      {/* 4. TextShimmer — exact replica */}
+      <TextShimmer as="span" className="font-light text-md tracking-tight">
+        Agent is thinking ...
+      </TextShimmer>
     </div>
   )
 }
@@ -235,15 +225,27 @@ function InputForm({
             transition={{ type: "spring", stiffness: 550 / SPEED, damping: 45, mass: 0.7 }}
             className="flex h-full flex-col p-1"
           >
-            {/* Header */}
-            <div className="flex shrink-0 items-center justify-between py-1">
-              <p className="text-foreground z-2 ml-[38px] flex items-center gap-[6px] select-none text-sm">
+            {/* ── Header — with go-back button ── */}
+            <div className="flex shrink-0 items-center justify-between py-1 px-1">
+              <button
+                type="button"
+                onClick={triggerClose}
+                className="flex items-center gap-1.5 rounded-full px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                aria-label="Close chat"
+              >
+                <ArrowLeft size={13} />
+                <span>Back</span>
+              </button>
+
+              <p className="flex items-center gap-[6px] select-none text-sm text-foreground/70">
+                <ColorOrb dimension="14px" tones={ORB_TONES} />
                 Ask Agent
               </p>
-              <KeyHint className="mt-1 mr-1 -translate-y-[3px]">Esc</KeyHint>
+
+              <div className="w-[54px]" />
             </div>
 
-            {/* Message history */}
+            {/* ── Message history ── */}
             <div className="flex-1 overflow-y-auto space-y-2.5 px-1 py-2 scrollbar-thin scrollbar-thumb-white/10">
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -259,24 +261,26 @@ function InputForm({
                 </div>
               ))}
 
-              {/* Stacked thinking indicator */}
-              {thinking && (
-                <AnimatePresence>
+              {/* ── Stacked thinking indicator ── */}
+              <AnimatePresence>
+                {thinking && (
                   <motion.div
-                    initial={{ opacity: 0, y: 8 }}
+                    key="thinking"
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
+                    exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.3 }}
+                    className="flex justify-start pl-1"
                   >
                     <ThinkingIndicator phaseIndex={thinkPhase} />
                   </motion.div>
-                </AnimatePresence>
-              )}
+                )}
+              </AnimatePresence>
 
               <div ref={bottomRef} />
             </div>
 
-            {/* Input */}
+            {/* ── Input ── */}
             <div className="mt-1 shrink-0 [&_.rounded-3xl]:rounded-xl [&_.p-2]:p-1.5">
               <PromptInputBox
                 onSend={(text) => onSend(text)}
@@ -285,21 +289,6 @@ function InputForm({
                 className="!bg-background !border-border"
               />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ColorOrb top-left */}
-      <AnimatePresence>
-        {showForm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="absolute top-2 left-3 pointer-events-none"
-          >
-            <ColorOrb dimension="24px" tones={ORB_TONES} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -341,13 +330,13 @@ export function AIChatWidget() {
     return () => document.removeEventListener("mousedown", handler)
   }, [showForm])
 
-  /* Phase rotation — cycles thinking label every 1.2 s */
+  /* Cooking phase rotation — every 1.4 s while thinking */
   React.useEffect(() => {
     if (thinking) {
       setThinkPhase(0)
       phaseTimerRef.current = setInterval(() => {
         setThinkPhase((p) => p + 1)
-      }, 1200)
+      }, 1400)
     } else {
       if (phaseTimerRef.current) clearInterval(phaseTimerRef.current)
     }
@@ -386,7 +375,7 @@ export function AIChatWidget() {
         })
         if (!res.ok) throw new Error("API error")
 
-        /* ── Minimum thinking window ── */
+        /* ── Enforce minimum thinking window ── */
         const elapsed = Date.now() - thinkStartRef.current
         const remaining = MIN_THINK_MS - elapsed
         if (remaining > 0) await new Promise((r) => setTimeout(r, remaining))
@@ -424,7 +413,6 @@ export function AIChatWidget() {
         }
       } catch (err: unknown) {
         if (err instanceof Error && err.name !== "AbortError") {
-          /* Still enforce minimum delay even on error */
           const elapsed = Date.now() - thinkStartRef.current
           const remaining = MIN_THINK_MS - elapsed
           if (remaining > 0) await new Promise((r) => setTimeout(r, remaining))
