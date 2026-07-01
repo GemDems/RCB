@@ -473,11 +473,6 @@ export default function GetDemoPage() {
       <Modal />
 
       {/* ── Top bar — exact replica position ── */}
-      <div className={cn("fixed top-4 left-4 z-20 flex items-center gap-2", "md:left-1/2 md:-translate-x-1/2")}>
-        <SiteLogo />
-        <h1 className="text-base font-bold text-foreground">3D Property Demo</h1>
-      </div>
-
       {/* ── Back button top-left on mobile, doesn't conflict with centered logo ── */}
       <div className="fixed top-4 right-4 z-20">
         <button onClick={() => navigate("/")}
