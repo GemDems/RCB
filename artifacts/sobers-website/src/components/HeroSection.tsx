@@ -93,7 +93,7 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
             <div className="space-y-5 max-w-3xl mx-auto text-center">
 
               {/* Hero search bar — above the badge */}
-              <div className="flex justify-center mb-2">
+              <div className="flex justify-center mb-8">
                 <HeroSearchBar onSearch={onSearch} />
               </div>
 
