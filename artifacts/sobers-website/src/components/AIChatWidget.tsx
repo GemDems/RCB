@@ -56,10 +56,30 @@ const ColorOrb: React.FC<OrbProps> = ({ dimension = "192px", className, tones, s
 }
 
 /* ─────────────────────────────────────────────
+   Responsive dimensions hook
+───────────────────────────────────────────── */
+function useFormDimensions() {
+  const compute = () => {
+    if (typeof window === "undefined") return { w: 390, h: 540 }
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    return {
+      w: Math.min(390, vw - 24),
+      h: Math.min(540, vh - 90),
+    }
+  }
+  const [dims, setDims] = React.useState(compute)
+  React.useEffect(() => {
+    const handler = () => setDims(compute())
+    window.addEventListener("resize", handler)
+    return () => window.removeEventListener("resize", handler)
+  }, [])
+  return dims
+}
+
+/* ─────────────────────────────────────────────
    Constants
 ───────────────────────────────────────────── */
-const FORM_WIDTH = 390
-const FORM_HEIGHT = 540
 const SPEED = 1
 const MIN_THINK_MS = 5000
 const ORB_TONES = { base: "oklch(22.64% 0 0)" }
@@ -293,6 +313,8 @@ function InputForm({
   onModeChange,
   bottomRef,
   onSend,
+  formW,
+  formH,
 }: {
   messages: Msg[]
   streaming: boolean
@@ -305,6 +327,8 @@ function InputForm({
   onModeChange: (m: InputMode) => void
   bottomRef: React.RefObject<HTMLDivElement | null>
   onSend: (text: string) => void
+  formW: number
+  formH: number
 }) {
   const { triggerClose, showForm } = useFormCtx()
 
@@ -319,7 +343,7 @@ function InputForm({
   return (
     <div
       className="absolute bottom-0"
-      style={{ width: FORM_WIDTH, height: FORM_HEIGHT, pointerEvents: showForm ? "all" : "none" }}
+      style={{ width: formW, height: formH, pointerEvents: showForm ? "all" : "none" }}
     >
       <AnimatePresence>
         {showForm && (
@@ -330,17 +354,19 @@ function InputForm({
             transition={{ type: "spring", stiffness: 550 / SPEED, damping: 45, mass: 0.7 }}
             className="flex h-full flex-col p-1"
           >
-            {/* Header — exact "Go back" button replica */}
-            <div className="flex shrink-0 items-center justify-between py-1 px-1">
-              <Button variant="link" onClick={triggerClose} className="px-0 text-muted-foreground hover:text-foreground">
-                <ChevronLeft className="me-1 opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
-                Go back
-              </Button>
-              <p className="flex items-center gap-[6px] select-none text-sm text-foreground/70">
+            {/* Header — centered label, equal-flex sides */}
+            <div className="flex shrink-0 items-center py-1 px-1">
+              <div className="flex-1">
+                <Button variant="link" onClick={triggerClose} className="px-0 text-muted-foreground hover:text-foreground">
+                  <ChevronLeft className="me-1 opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
+                  Go back
+                </Button>
+              </div>
+              <p className="flex shrink-0 items-center gap-[6px] select-none text-sm text-foreground/70">
                 <ColorOrb dimension="14px" tones={ORB_TONES} />
                 Ask Agent
               </p>
-              <div className="w-[72px]" />
+              <div className="flex-1" />
             </div>
 
             {/* Message history */}
@@ -563,16 +589,18 @@ export function AIChatWidget() {
     [showForm, triggerOpen, triggerClose],
   )
 
+  const { w: formW, h: formH } = useFormDimensions()
+
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex items-end justify-end">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex items-end justify-end">
       <motion.div
         ref={wrapperRef}
         data-panel
         className={cx("bg-background relative flex flex-col items-center overflow-hidden border")}
         initial={false}
         animate={{
-          width: showForm ? FORM_WIDTH : "auto",
-          height: showForm ? FORM_HEIGHT : 44,
+          width: showForm ? formW : "auto",
+          height: showForm ? formH : 44,
           borderRadius: showForm ? 14 : 20,
         }}
         transition={{
@@ -597,6 +625,8 @@ export function AIChatWidget() {
             onModeChange={handleModeChange}
             bottomRef={bottomRef}
             onSend={handleSend}
+            formW={formW}
+            formH={formH}
           />
         </FormCtx.Provider>
       </motion.div>

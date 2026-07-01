@@ -86,7 +86,7 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
         />
         <section className="relative max-w-full mx-auto z-1">
           <RetroGrid {...gridOptions} />
-          <div className="max-w-screen-xl z-10 mx-auto px-4 py-28 gap-12 md:px-8">
+          <div className="max-w-screen-xl z-10 mx-auto px-4 py-14 md:py-28 gap-12 md:px-8">
             <div className="space-y-5 max-w-3xl mx-auto text-center">
 
               {/* Badge — animated liquid button */}
@@ -96,7 +96,7 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
                 </LiquidButton>
               </div>
 
-              <h2 className="text-4xl tracking-tighter mx-auto md:text-6xl text-white font-black">
+              <h2 className="text-3xl tracking-tighter mx-auto md:text-6xl text-white font-black">
                 {subtitle.regular}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-orange-200">
                   {subtitle.gradient}

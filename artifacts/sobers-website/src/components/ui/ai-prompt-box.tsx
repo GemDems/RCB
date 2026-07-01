@@ -3,7 +3,7 @@
 import React from "react"
 import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { ArrowUp, Paperclip, Square, X, StopCircle, Mic, Globe, BrainCog, FolderCode } from "lucide-react"
+import { ArrowUp, Square, X, StopCircle, Mic, Globe, BrainCog } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 import { cn } from "@/lib/utils"
@@ -422,13 +422,11 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
     if (value === "search") {
       const next = !showSearch
       setShowSearch(next)
-      setShowThink(false)
-      onModeChange?.({ search: next, think: false, canvas: showCanvas })
+      onModeChange?.({ search: next, think: showThink, canvas: showCanvas })
     } else if (value === "think") {
       const next = !showThink
       setShowThink(next)
-      setShowSearch(false)
-      onModeChange?.({ search: false, think: next, canvas: showCanvas })
+      onModeChange?.({ search: showSearch, think: next, canvas: showCanvas })
     }
   }
 
@@ -543,31 +541,6 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {files.length > 0 && !isRecording && (
-          <div className="flex flex-wrap gap-2 p-0 pb-1 transition-all duration-300">
-            {files.map((file, index) => (
-              <div key={index} className="relative group">
-                {file.type.startsWith("image/") && filePreviews[file.name] && (
-                  <div
-                    className="w-16 h-16 rounded-xl overflow-hidden cursor-pointer transition-all duration-300"
-                    onClick={() => openImageModal(filePreviews[file.name])}
-                  >
-                    <img src={filePreviews[file.name]} alt={file.name} className="h-full w-full object-cover" />
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleRemoveFile(index)
-                      }}
-                      className="absolute top-1 right-1 rounded-full bg-black/70 p-0.5 opacity-100 transition-opacity"
-                    >
-                      <X className="h-3 w-3 text-white" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
 
         <div className={cn("transition-all duration-300", isRecording ? "h-0 overflow-hidden opacity-0" : "opacity-100")}>
           <PromptInputTextarea
@@ -599,27 +572,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
               isRecording ? "opacity-0 invisible h-0" : "opacity-100 visible",
             )}
           >
-            <PromptInputAction tooltip="Upload image">
-              <button
-                onClick={() => uploadInputRef.current?.click()}
-                className="flex h-8 w-8 text-[#9CA3AF] cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-gray-600/30 hover:text-[#D1D5DB]"
-                disabled={isRecording}
-              >
-                <Paperclip className="h-5 w-5 transition-colors" />
-                <input
-                  ref={uploadInputRef}
-                  type="file"
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files.length > 0) processFile(e.target.files[0])
-                    if (e.target) e.target.value = ""
-                  }}
-                  accept="image/*"
-                />
-              </button>
-            </PromptInputAction>
-
-            <div className="flex items-center">
+              <div className="flex items-center">
               <button
                 type="button"
                 onClick={() => handleToggleChange("search")}
@@ -698,45 +651,6 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
                 </AnimatePresence>
               </button>
 
-              <CustomDivider />
-
-              <button
-                type="button"
-                onClick={handleCanvasToggle}
-                className={cn(
-                  "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-8",
-                  showCanvas
-                    ? "bg-[#F97316]/15 border-[#F97316] text-[#F97316]"
-                    : "bg-transparent border-transparent text-[#9CA3AF] hover:text-[#D1D5DB]",
-                )}
-              >
-                <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-                  <motion.div
-                    animate={{ rotate: showCanvas ? 360 : 0, scale: showCanvas ? 1.1 : 1 }}
-                    whileHover={{
-                      rotate: showCanvas ? 360 : 15,
-                      scale: 1.1,
-                      transition: { type: "spring", stiffness: 300, damping: 10 },
-                    }}
-                    transition={{ type: "spring", stiffness: 260, damping: 25 }}
-                  >
-                    <FolderCode className={cn("w-4 h-4", showCanvas ? "text-[#F97316]" : "text-inherit")} />
-                  </motion.div>
-                </div>
-                <AnimatePresence>
-                  {showCanvas && (
-                    <motion.span
-                      initial={{ width: 0, opacity: 0 }}
-                      animate={{ width: "auto", opacity: 1 }}
-                      exit={{ width: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="text-xs overflow-hidden whitespace-nowrap text-[#F97316] flex-shrink-0"
-                    >
-                      Canvas
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </button>
             </div>
           </div>
 

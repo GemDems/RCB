@@ -59,13 +59,13 @@ export default function App() {
       </div>
 
       {/* ── ROI Pull Quote ── */}
-      <section ref={roiRef} className="relative py-32 px-6 overflow-hidden">
+      <section ref={roiRef} className="relative py-16 md:py-32 px-6 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[300px] rounded-full bg-purple-600/10 blur-[100px]" />
         </div>
         <div className="relative max-w-4xl mx-auto text-center">
-          <div className="text-6xl text-purple-400/30 font-serif leading-none mb-6 select-none">"</div>
-          <p className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight mb-6">
+          <div className="text-4xl md:text-6xl text-purple-400/30 font-serif leading-none mb-6 select-none">"</div>
+          <p className="text-2xl md:text-5xl font-black text-white tracking-tight leading-tight mb-6">
             If it even gets you{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-orange-200">
               one extra booking
@@ -89,7 +89,7 @@ export default function App() {
       </section>
 
       {/* ── Max Conversion ── */}
-      <section ref={conversionRef} className="relative py-32 px-6 overflow-hidden">
+      <section ref={conversionRef} className="relative py-16 md:py-32 px-6 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute left-1/4 top-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-blue-600/8 blur-[120px]" />
           <div className="absolute right-1/4 top-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-cyan-400/6 blur-[100px]" />
