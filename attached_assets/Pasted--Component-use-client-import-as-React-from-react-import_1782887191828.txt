@@ -1,3 +1,4 @@
+// --- Component ---
 "use client"
 
 import * as React from "react"
@@ -113,7 +114,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord){
     col *= res;
     fragColor = vec4(col, 1.0);
 }
-void main(){ mainImage(gl_FragColor, gl_FragCoord.xy); gl_FragColor.a = max(gl_FragColor.r, max(gl_FragColor.g, gl_FragColor.b)); }`
+void main(){ mainImage(gl_FragColor, gl_FragCoord.xy); }`
 
 const FLUID_DOTS_SHADER = `precision highp float;
 uniform vec2 iResolution; uniform float iTime;
@@ -254,7 +255,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord){
     col += (n - 0.5)/255.0;
     fragColor = vec4(col, 1.0);
 }
-void main(){ mainImage(gl_FragColor, gl_FragCoord.xy); gl_FragColor.a = max(gl_FragColor.r, max(gl_FragColor.g, gl_FragColor.b)); }`
+void main(){ mainImage(gl_FragColor, gl_FragCoord.xy); }`
 
 const FRAGMENT_SHADERS: Record<SiriWaveVariant, string> = {
   wave: WAVE_SHADER,
@@ -284,11 +285,8 @@ export function SiriWave({
   React.useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const gl = canvas.getContext("webgl", { alpha: true, premultipliedAlpha: false })
+    const gl = canvas.getContext("webgl")
     if (!gl) return
-    gl.enable(gl.BLEND)
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-    gl.clearColor(0, 0, 0, 0)
 
     const compile = (type: number, src: string) => {
       const shader = gl.createShader(type)!
@@ -336,7 +334,6 @@ export function SiriWave({
       const now =
         typeof performance !== "undefined" ? performance.now() : Date.now()
       const t = (now - start) / 1000
-      gl.clear(gl.COLOR_BUFFER_BIT)
       gl.uniform2f(uResolution, dim, dim)
       gl.uniform1f(uTime, t)
       gl.drawArrays(gl.TRIANGLES, 0, 3)
@@ -356,7 +353,7 @@ export function SiriWave({
   return (
     <canvas
       ref={canvasRef}
-      className={cn("block rounded-[20px]", className)}
+      className={cn("block rounded-[20px] bg-black", className)}
       style={{ width: size, height: size, ...style }}
       {...props}
     />
@@ -364,3 +361,19 @@ export function SiriWave({
 }
 
 export default SiriWave
+
+
+// --- Demo ---
+import { SiriWave } from "@/components/ui/siri-wave"
+
+export default function SiriWaveDemo() {
+  return (
+    <div className="flex min-h-screen w-full items-center justify-center bg-[#0a0a0c] p-8">
+      <SiriWave
+        variant="wave"
+        size={360}
+        className="shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
+      />
+    </div>
+  )
+}

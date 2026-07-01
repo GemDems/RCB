@@ -403,9 +403,10 @@ interface PromptInputBoxProps {
   isLoading?: boolean
   placeholder?: string
   className?: string
+  onModeChange?: (mode: { search: boolean; think: boolean; canvas: boolean }) => void
 }
 export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref: React.Ref<HTMLDivElement>) => {
-  const { onSend = () => {}, isLoading = false, placeholder = "Type your message here...", className } = props
+  const { onSend = () => {}, isLoading = false, placeholder = "Type your message here...", className, onModeChange } = props
   const [input, setInput] = React.useState("")
   const [files, setFiles] = React.useState<File[]>([])
   const [filePreviews, setFilePreviews] = React.useState<{ [key: string]: string }>({})
@@ -419,15 +420,23 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
 
   const handleToggleChange = (value: string) => {
     if (value === "search") {
-      setShowSearch((prev) => !prev)
+      const next = !showSearch
+      setShowSearch(next)
       setShowThink(false)
+      onModeChange?.({ search: next, think: false, canvas: showCanvas })
     } else if (value === "think") {
-      setShowThink((prev) => !prev)
+      const next = !showThink
+      setShowThink(next)
       setShowSearch(false)
+      onModeChange?.({ search: false, think: next, canvas: showCanvas })
     }
   }
 
-  const handleCanvasToggle = () => setShowCanvas((prev) => !prev)
+  const handleCanvasToggle = () => {
+    const next = !showCanvas
+    setShowCanvas(next)
+    onModeChange?.({ search: showSearch, think: showThink, canvas: next })
+  }
 
   const isImageFile = (file: File) => file.type.startsWith("image/")
 
