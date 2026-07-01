@@ -1,7 +1,17 @@
 import { Router, type IRouter } from "express";
+import { rateLimit } from "express-rate-limit";
 import { CohereClient } from "cohere-ai";
 
 const router: IRouter = Router();
+
+// Rate-limit: 20 requests per IP per minute to prevent AI cost abuse
+const chatLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 20,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { error: "Too many requests — please wait a moment and try again." },
+});
 
 const cohereApiKey = process.env["COHERE_API_KEY"];
 if (!cohereApiKey) {
@@ -51,7 +61,7 @@ interface Message {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-router.post("/chat", async (req, res) => {
+router.post("/chat", chatLimiter, async (req, res) => {
   try {
     const { messages }: { messages: Message[] } = req.body;
 
@@ -63,7 +73,6 @@ router.post("/chat", async (req, res) => {
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
-    res.setHeader("Access-Control-Allow-Origin", "*");
 
     const cohereMessages = messages.slice(0, -1).map((m) => ({
       role: m.role === "user" ? ("USER" as const) : ("CHATBOT" as const),

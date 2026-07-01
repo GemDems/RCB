@@ -27,6 +27,7 @@ The frontend proxies `/api` requests to the API server at `localhost:8080`.
 |---|---|---|
 | `DATABASE_URL` | For DB features | PostgreSQL connection string — set in Replit Secrets |
 | `SESSION_SECRET` | For sessions | Set in Replit Secrets |
+| `COHERE_API_KEY` | For AI chat | Powers `/api/chat`; without it the chat widget fails at runtime — set in Replit Secrets |
 | `PORT` | Auto-set | Injected by Replit per artifact |
 | `BASE_PATH` | Auto-set | Injected by Replit per artifact |
 
