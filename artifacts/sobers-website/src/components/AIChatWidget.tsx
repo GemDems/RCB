@@ -111,14 +111,14 @@ type InputMode = { search: boolean; think: boolean; canvas: boolean }
    Trusted logos shown above input until first message
 ───────────────────────────────────────────── */
 const CHAT_LOGOS = [
-  { src: logoAirbnb,      alt: "Airbnb",       height: 48 },
-  { src: logoRightmove,   alt: "Rightmove",    height: 100 },
-  { src: logoBooking,     alt: "Booking.com",  height: 90 },
-  { src: logoZoopla,      alt: "Zoopla",       height: 30 },
-  { src: logoKnightFrank, alt: "Knight Frank", height: 46 },
-  { src: logoSavills,     alt: "Savills",      height: 44 },
-  { src: logoCBRE,        alt: "CBRE",         height: 28 },
-  { src: logoJLL,         alt: "JLL",          height: 34 },
+  { src: logoAirbnb,      alt: "Airbnb",       cellH: 40  },
+  { src: logoRightmove,   alt: "Rightmove",    cellH: 280 },
+  { src: logoBooking,     alt: "Booking.com",  cellH: 280 },
+  { src: logoZoopla,      alt: "Zoopla",       cellH: 40  },
+  { src: logoKnightFrank, alt: "Knight Frank", cellH: 40  },
+  { src: logoSavills,     alt: "Savills",      cellH: 40  },
+  { src: logoCBRE,        alt: "CBRE",         cellH: 40  },
+  { src: logoJLL,         alt: "JLL",          cellH: 40  },
 ]
 
 const chatLogoTransitionVariants = {
@@ -157,7 +157,7 @@ function ChatTrustedLogos({ visible }: { visible: boolean }) {
             className="grid grid-cols-4 gap-x-3 gap-y-4"
           >
             {CHAT_LOGOS.map((logo) => (
-              <div key={logo.alt} className="flex items-center justify-center h-10">
+              <div key={logo.alt} className="flex items-center justify-center" style={{ height: logo.cellH }}>
                 <img
                   src={logo.src}
                   alt={logo.alt}
