@@ -1,4 +1,4 @@
-import { useRef, type RefObject } from "react"
+import { useRef, useState, type RefObject } from "react"
 import { motion, useScroll, useTransform } from "motion/react"
 import { HeroSection } from "@/components/HeroSection"
 import { CinematicFooter } from "@/components/CinematicFooter"
@@ -32,6 +32,12 @@ export default function App() {
   const heroRef = useRef<HTMLDivElement>(null)
   const roiRef = useRef<HTMLElement>(null)
   const conversionRef = useRef<HTMLElement>(null)
+  const [heroQuery, setHeroQuery] = useState<string | undefined>(undefined)
+
+  function handleHeroSearch(query: string) {
+    // Each new query needs a unique identity so the effect re-fires even for the same text
+    setHeroQuery(query + "||" + Date.now())
+  }
 
   return (
     <div className="relative w-full bg-background text-foreground overflow-x-hidden font-sans dark">
@@ -47,6 +53,7 @@ export default function App() {
           description="Hyper-realistic 3D walkthroughs and virtual tours that give buyers and guests the confidence to book — before ever stepping inside. Interactive digital twins, photorealistic renders, and marketing assets all from a single model."
           ctaText="Book a Free Demo"
           ctaHref="#"
+          onSearch={handleHeroSearch}
           gridOptions={{
             angle: 65,
             opacity: 0.4,
@@ -123,7 +130,7 @@ export default function App() {
       </div>
 
       {/* ── AI Chat Widget ── */}
-      <AIChatWidget />
+      <AIChatWidget externalQuery={heroQuery} />
 
     </div>
   )

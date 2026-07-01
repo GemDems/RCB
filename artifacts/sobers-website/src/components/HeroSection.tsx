@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils"
 import { ActiveUsersWidget } from "@/components/ActiveUsersWidget"
 import { ShinyButton } from "@/components/ui/ShinyButton"
 import { LiquidButton } from "@/components/ui/button-1"
+import { HeroSearchBar } from "@/components/ui/HeroSearchBar"
 
 interface HeroSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
@@ -14,6 +15,7 @@ interface HeroSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   description?: string
   ctaText?: string
   ctaHref?: string
+  onSearch?: (query: string) => void
   gridOptions?: {
     angle?: number
     cellSize?: number
@@ -61,6 +63,7 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
       description = "Sed ut perspiciatis unde omnis iste natus voluptatem accusantium doloremque laudantium.",
       ctaText = "Browse courses",
       ctaHref = "#",
+      onSearch,
       gridOptions,
       ...props
     },
@@ -88,6 +91,11 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
           <RetroGrid {...gridOptions} />
           <div className="max-w-screen-xl z-10 mx-auto px-4 py-14 md:py-28 gap-12 md:px-8">
             <div className="space-y-5 max-w-3xl mx-auto text-center">
+
+              {/* Hero search bar — above the badge */}
+              <div className="flex justify-center mb-2">
+                <HeroSearchBar onSearch={onSearch} />
+              </div>
 
               {/* Badge — animated liquid button */}
               <div className="flex justify-center">

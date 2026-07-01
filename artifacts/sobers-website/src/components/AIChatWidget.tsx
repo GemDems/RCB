@@ -482,7 +482,7 @@ function InputForm({
 /* ─────────────────────────────────────────────
    AIChatWidget — main export
 ───────────────────────────────────────────── */
-export function AIChatWidget() {
+export function AIChatWidget({ externalQuery }: { externalQuery?: string }) {
   const wrapperRef = React.useRef<HTMLDivElement>(null)
   const bottomRef = React.useRef<HTMLDivElement>(null)
   const abortRef = React.useRef<AbortController | null>(null)
@@ -505,6 +505,18 @@ export function AIChatWidget() {
   React.useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, thinking, grokExpanded])
+
+  /* External query — open the chat and fire the message */
+  React.useEffect(() => {
+    if (!externalQuery) return
+    const query = externalQuery.split("||")[0].trim()
+    if (!query) return
+    setShowForm(true)
+    // Small delay so the panel has time to animate open before send
+    const t = setTimeout(() => handleSend(query), 350)
+    return () => clearTimeout(t)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [externalQuery])
 
   /* Click outside to close */
   React.useEffect(() => {
