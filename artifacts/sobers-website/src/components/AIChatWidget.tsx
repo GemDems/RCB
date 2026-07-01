@@ -12,6 +12,14 @@ import { TextShimmer } from "./ui/shimmer-text"
 import { StarButton } from "./ui/star-button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { AnimatedGroup } from "./ui/animated-group"
+import logoAirbnb      from "@assets/airbnb-logo-0_1782897183247.webp"
+import logoRightmove   from "@assets/rightmove-logo_brandlogos.net_uyygd-512x512_1782897187432.webp"
+import logoBooking     from "@assets/1825430_1782897190697.webp"
+import logoZoopla      from "@assets/Zoopla-Logo-2010-500x281_1782897194833.webp"
+import logoKnightFrank from "@assets/knight-frank-logo-png-transparent_1782897198757.webp"
+import logoSavills     from "@assets/savills_1782897202584.webp"
+import logoCBRE        from "@assets/CBRE-Logo-500x281_1782897205703.webp"
+import logoJLL         from "@assets/JLL-Logo-500x281_1782897214917.webp"
 
 /* ─────────────────────────────────────────────
    ColorOrb
@@ -103,14 +111,14 @@ type InputMode = { search: boolean; think: boolean; canvas: boolean }
    Trusted logos shown above input until first message
 ───────────────────────────────────────────── */
 const CHAT_LOGOS = [
-  { src: "https://html.tailus.io/blocks/customers/nvidia.svg",       alt: "Airbnb",        height: 11 },
-  { src: "https://html.tailus.io/blocks/customers/github.svg",       alt: "Rightmove",     height: 11 },
-  { src: "https://html.tailus.io/blocks/customers/nike.svg",         alt: "Booking.com",   height: 11 },
-  { src: "https://html.tailus.io/blocks/customers/laravel.svg",      alt: "Zoopla",        height: 11 },
-  { src: "https://html.tailus.io/blocks/customers/openai.svg",       alt: "Knight Frank",  height: 11 },
-  { src: "https://html.tailus.io/blocks/customers/lemonsqueezy.svg", alt: "Savills",       height: 11 },
-  { src: "https://html.tailus.io/blocks/customers/column.svg",       alt: "CBRE",          height: 11 },
-  { src: "https://html.tailus.io/blocks/customers/lilly.svg",        alt: "JLL",           height: 11 },
+  { src: logoAirbnb,      alt: "Airbnb",       height: 28 },
+  { src: logoRightmove,   alt: "Rightmove",    height: 14 },
+  { src: logoBooking,     alt: "Booking.com",  height: 14 },
+  { src: logoZoopla,      alt: "Zoopla",       height: 18 },
+  { src: logoKnightFrank, alt: "Knight Frank", height: 26 },
+  { src: logoSavills,     alt: "Savills",      height: 24 },
+  { src: logoCBRE,        alt: "CBRE",         height: 16 },
+  { src: logoJLL,         alt: "JLL",          height: 20 },
 ]
 
 function ChatTrustedLogos({ visible }: { visible: boolean }) {
@@ -152,8 +160,8 @@ function ChatTrustedLogos({ visible }: { visible: boolean }) {
                 key={logo.alt}
                 src={logo.src}
                 alt={logo.alt}
-                className="opacity-35 dark:invert flex-shrink-0 w-auto"
-                style={{ height: logo.height }}
+                className="flex-shrink-0 w-auto opacity-70"
+                style={{ height: logo.height, mixBlendMode: "screen" }}
               />
             ))}
           </AnimatedGroup>
