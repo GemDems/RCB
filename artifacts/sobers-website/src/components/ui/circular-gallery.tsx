@@ -184,28 +184,23 @@ class Media {
           float edgeSmooth = 0.002;
           float alpha = 1.0 - smoothstep(-edgeSmooth, edgeSmooth, d);
 
-          // Per-card perimeter spotlight glow
+          // Per-card perimeter spotlight glow (uGlowIntensity=1 when mouse is over this card)
           float dx = min(vUv.x, 1.0 - vUv.x);
           float dy = min(vUv.y, 1.0 - vUv.y);
           float edgeDist = min(dx, dy);
           float borderMask = smoothstep(0.07, 0.0, edgeDist);
 
-          // Project mouse onto the axis of the nearest edge for a 1D spotlight
+          // Spotlight travels along the nearest edge axis
           float alongEdgeDist;
           if (dx < dy) {
-            alongEdgeDist = abs(vUv.y - clamp(uMouse.y, 0.0, 1.0));
+            alongEdgeDist = abs(vUv.y - uMouse.y);
           } else {
-            alongEdgeDist = abs(vUv.x - clamp(uMouse.x, 0.0, 1.0));
+            alongEdgeDist = abs(vUv.x - uMouse.x);
           }
+          float spotlightFalloff = smoothstep(0.5, 0.0, alongEdgeDist);
 
-          // Fade out when mouse is not on this card
-          float outsideX = max(-uMouse.x, uMouse.x - 1.0);
-          float outsideY = max(-uMouse.y, uMouse.y - 1.0);
-          float mouseNearCard = 1.0 - smoothstep(0.0, 0.25, max(outsideX, outsideY));
-
-          float spotlightFalloff = smoothstep(0.45, 0.0, alongEdgeDist);
-          float glow = borderMask * spotlightFalloff * mouseNearCard * uGlowIntensity;
-          vec3 glowColor = vec3(0.4, 0.62, 1.0) * glow * 5.0;
+          float glow = borderMask * spotlightFalloff * uGlowIntensity;
+          vec3 glowColor = vec3(0.45, 0.65, 1.0) * glow * 6.0;
           color.rgb = clamp(color.rgb + glowColor, 0.0, 1.0);
 
           gl_FragColor = vec4(color.rgb, alpha);
@@ -259,13 +254,30 @@ class Media {
     this.speed = scroll.current - scroll.last;
     this.program.uniforms.uTime.value += 0.04;
     this.program.uniforms.uSpeed.value = this.speed;
-    // Project canvas-relative mouse (0–1) into this plane's UV space
-    const ndcMouseX = this.mouseX * 2 - 1;
-    const ndcMouseY = -(this.mouseY * 2 - 1);
-    const planeCenterNdcX = this.plane.position.x / (this.viewport.width / 2);
-    const planeCenterNdcY = this.plane.position.y / (this.viewport.height / 2);
-    const uvX = (ndcMouseX - planeCenterNdcX) * this.viewport.width / (2 * this.plane.scale.x) + 0.5;
-    const uvY = (ndcMouseY - planeCenterNdcY) * this.viewport.height / (2 * this.plane.scale.y) + 0.5;
+
+    // Screen-space hit test: convert plane world pos → canvas (0-1) coords
+    const ndcCX = this.plane.position.x / (this.viewport.width / 2);
+    const ndcCY = this.plane.position.y / (this.viewport.height / 2);
+    const screenCX = (ndcCX + 1) / 2;                  // canvas X: 0=left,  1=right
+    const screenCY = 0.5 - ndcCY / 2;                  // canvas Y: 0=top,   1=bottom
+    const screenHalfW = this.plane.scale.x / this.viewport.width;
+    const screenHalfH = this.plane.scale.y / this.viewport.height;
+
+    const onCard =
+      this.mouseX >= 0 &&
+      this.mouseX <= 1 &&
+      Math.abs(this.mouseX - screenCX) < screenHalfW &&
+      Math.abs(this.mouseY - screenCY) < screenHalfH;
+
+    this.program.uniforms.uGlowIntensity.value = onCard ? 1.0 : 0.0;
+
+    // UV of the mouse within this card (0=left/top edge, 1=right/bottom edge)
+    const uvX = onCard
+      ? (this.mouseX - (screenCX - screenHalfW)) / (2 * screenHalfW)
+      : 0.5;
+    const uvY = onCard
+      ? (this.mouseY - (screenCY - screenHalfH)) / (2 * screenHalfH)
+      : 0.5;
     this.program.uniforms.uMouse.value = [uvX, uvY];
     const planeOffset = this.plane.scale.x / 2;
     const viewportOffset = this.viewport.width / 2;
