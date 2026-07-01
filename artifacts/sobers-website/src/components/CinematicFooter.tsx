@@ -118,7 +118,7 @@ export function CinematicFooter() {
           </p>
           <div ref={linksRef} className="flex flex-col items-center gap-6 w-full">
             <div className="flex flex-wrap justify-center gap-4 w-full">
-              <MagneticButton as="a" href="mailto:hello@example.com" className="footer-glass-pill px-10 py-5 rounded-full text-foreground font-bold text-sm md:text-base flex items-center gap-3 group">
+              <MagneticButton as="a" href="/demo" className="footer-glass-pill px-10 py-5 rounded-full text-foreground font-bold text-sm md:text-base flex items-center gap-3 group">
                 <svg className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>

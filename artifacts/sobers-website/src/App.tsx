@@ -52,7 +52,7 @@ export default function App() {
           }}
           description="Hyper-realistic 3D walkthroughs and virtual tours that give buyers and guests the confidence to book — before ever stepping inside. Interactive digital twins, photorealistic renders, and marketing assets all from a single model."
           ctaText="Get Your Free 3D Demo"
-          ctaHref="#"
+          ctaHref="/demo"
           onSearch={handleHeroSearch}
           gridOptions={{
             angle: 65,
@@ -87,7 +87,7 @@ export default function App() {
             One night's revenue from a property typically covers the entire cost of a professional 3D tour — and that tour keeps working for you every single day it's live.
           </p>
           <div className="mt-10 flex justify-center">
-            <a href="#" className="shiny-cta !py-3 !px-8 !text-base">
+            <a href="/demo" className="shiny-cta !py-3 !px-8 !text-base">
               <span>Get Your Free 3D Demo</span>
             </a>
           </div>
