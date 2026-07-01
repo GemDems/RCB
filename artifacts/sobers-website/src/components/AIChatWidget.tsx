@@ -190,22 +190,25 @@ function ThinkingArea({
   const showGrok = mode.think
 
   return (
-    <div className="flex flex-col items-start gap-2 py-1">
+    <div className="flex flex-col items-start gap-2 py-1 w-full">
 
-      {/* 1 — SiriWave: compact, same left edge as other indicators */}
-      <SiriWave
-        variant="wave"
-        size={22}
-        renderScale={1}
-        className="rounded"
-        style={{ background: "transparent" }}
-      />
+      {/* 1 — SiriWave: restored to original size/scale */}
+      <div className="w-full flex items-center">
+        <SiriWave
+          variant="wave"
+          size={80}
+          renderScale={0.85}
+          className="rounded-lg"
+          style={{ background: "transparent" }}
+        />
+      </div>
 
-      {/* 2 — Cooking breadcrumb: blurs in after 1.8s */}
+      {/* 2 — Cooking breadcrumb: indented to align with SiriWave orb */}
       <AnimatePresence>
         {showCooking && cookingVisible && (
           <motion.div
             key="cooking"
+            className="w-full pl-3"
             initial={{ opacity: 0, filter: "blur(6px)", y: 4 }}
             animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
             exit={{ opacity: 0, filter: "blur(4px)", y: -4 }}
@@ -226,11 +229,12 @@ function ThinkingArea({
         )}
       </AnimatePresence>
 
-      {/* 3 — Grok section: only in "think" mode */}
+      {/* 3 — Grok section: indented to align with SiriWave orb */}
       <AnimatePresence>
         {showGrok && cookingVisible && (
           <motion.div
             key="grok-section"
+            className="w-full pl-3"
             initial={{ opacity: 0, filter: "blur(4px)", y: 4 }}
             animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
             exit={{ opacity: 0, filter: "blur(4px)", y: -4 }}
@@ -251,7 +255,7 @@ function ThinkingArea({
                 animate={{ opacity: 1, height: "auto", y: 0 }}
                 exit={{ opacity: 0, height: 0, y: -8 }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="overflow-hidden cursor-pointer"
+                className="overflow-hidden cursor-pointer w-full"
                 onClick={onToggleGrok}
                 title="Click to collapse"
               >
