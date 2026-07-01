@@ -159,17 +159,17 @@ function ChatTrustedLogos({ visible }: { visible: boolean }) {
             {CHAT_LOGOS.map((logo) => (
               <div
                 key={logo.alt}
-                className={cn(
-                  "flex items-center justify-center",
-                  logo.alt === "Rightmove" || logo.alt === "Booking.com"
-                    ? "h-20"
-                    : "h-10"
-                )}
+                className="flex items-center justify-center h-16"
               >
                 <img
                   src={logo.src}
                   alt={logo.alt}
-                  className="w-full h-full object-contain"
+                  className={cn(
+                    "w-full object-contain",
+                    logo.alt === "Rightmove" || logo.alt === "Booking.com"
+                      ? "h-full"
+                      : "h-10"
+                  )}
                   style={{ mixBlendMode: "screen", opacity: 0.8 }}
                 />
               </div>
