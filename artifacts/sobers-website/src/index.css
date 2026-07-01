@@ -40,7 +40,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* Dark theme — SOBERS brand */
+/* Dark theme — Vista3D brand */
 :root {
   --background: 220 13% 7%;
   --foreground: 210 20% 94%;

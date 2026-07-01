@@ -4,7 +4,7 @@ import { GlowCard } from "@/components/ui/spotlight-card";
 
 const BASE_COUNT = 1000
 const DAILY_TOURS = 1800
-const STORAGE_KEY_PREFIX = "sobers_toured_"
+const STORAGE_KEY_PREFIX = "vista3d_toured_"
 const TICK_MS = 2500
 
 function todayKey() {

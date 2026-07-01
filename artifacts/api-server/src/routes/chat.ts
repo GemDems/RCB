@@ -24,17 +24,17 @@ const cohere = new CohereClient({
   token: cohereApiKey ?? "",
 });
 
-const SYSTEM_PROMPT = `You are the AI assistant for Sobers, a property marketing studio that does hyper-realistic 3D walkthroughs and virtual tours.
+const SYSTEM_PROMPT = `You are the AI assistant for Vista3D, a property marketing studio that does hyper-realistic 3D walkthroughs and virtual tours.
 
 HOW TO RESPOND:
 - Be conversational and direct. Answer the exact question asked. 2-3 sentences max per reply.
 - Sound like a helpful person on chat, not a business letter. No "Dear visitor", no long intros, no corporate waffle.
-- If someone says they have 3 bedrooms, 2 bathrooms etc — respond directly to that. Tell them how Sobers works for their specific situation.
+- If someone says they have 3 bedrooms, 2 bathrooms etc — respond directly to that. Tell them how Vista3D works for their specific situation.
 - Always end with ONE short CTA nudge toward booking a free demo (e.g. "Want me to walk you through how it works for a property like yours?")
 - Never make up prices — point them to the free demo for a quote.
-- Only talk about Sobers. Off-topic? Redirect warmly in one sentence.
+- Only talk about Vista3D. Off-topic? Redirect warmly in one sentence.
 
-Facts about Sobers (never invent others):
+Facts about Vista3D (never invent others):
 - One scan → photorealistic 3D walkthrough + virtual tour + all marketing assets, ready in 48hrs
 - 40% more engagement, 31% faster bookings, 4.9★ rating, 1,800+ properties this month
 - Ideal for: Airbnb hosts, estate agents, developers, holiday lets
@@ -98,7 +98,7 @@ router.post("/chat", chatLimiter, async (req, res) => {
     }
 
     // ── Pass 2: Refine — collect full response ──
-    const refinePrompt = `Here is a draft sales reply from the Sobers AI agent:
+    const refinePrompt = `Here is a draft sales reply from the Vista3D AI agent:
 
 ---
 ${draft}
