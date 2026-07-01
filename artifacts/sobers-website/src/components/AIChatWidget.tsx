@@ -145,44 +145,28 @@ function ChatTrustedLogos({ visible }: { visible: boolean }) {
           transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
           className="shrink-0 px-3 pb-3 pt-2"
         >
-          {/* Label */}
-          <p className="text-[9px] text-muted-foreground/50 text-center mb-3 tracking-widest uppercase font-medium">
-            Trusted by leading brands
-          </p>
-
-          {/* Grid with hover overlay — mirrors CustomersSection exactly */}
-          <div className="group relative">
-            {/* Hover overlay: "Meet Our Customers" */}
-            <div className="absolute inset-0 z-10 flex scale-95 items-center justify-center opacity-0 duration-500 group-hover:scale-100 group-hover:opacity-100 pointer-events-none">
-              <span className="text-[11px] text-foreground/80 font-medium tracking-wide">
-                Trusted by leading teams
-              </span>
-            </div>
-
-            {/* Animated logo grid */}
-            <AnimatedGroup
-              variants={{
-                container: {
-                  visible: {
-                    transition: { staggerChildren: 0.05, delayChildren: 0.75 },
-                  },
+          <AnimatedGroup
+            variants={{
+              container: {
+                visible: {
+                  transition: { staggerChildren: 0.05, delayChildren: 0.75 },
                 },
-                ...chatLogoTransitionVariants,
-              }}
-              className="grid grid-cols-4 gap-x-3 gap-y-5 transition-all duration-500 group-hover:opacity-50 group-hover:[filter:blur(2px)]"
-            >
-              {CHAT_LOGOS.map((logo) => (
-                <div key={logo.alt} className="flex items-center justify-center">
-                  <img
-                    src={logo.src}
-                    alt={logo.alt}
-                    className="mx-auto h-auto w-fit"
-                    style={{ height: logo.height, mixBlendMode: "screen", opacity: 0.75 }}
-                  />
-                </div>
-              ))}
-            </AnimatedGroup>
-          </div>
+              },
+              ...chatLogoTransitionVariants,
+            }}
+            className="grid grid-cols-4 gap-x-3 gap-y-4"
+          >
+            {CHAT_LOGOS.map((logo) => (
+              <div key={logo.alt} className="flex items-center justify-center h-10">
+                <img
+                  src={logo.src}
+                  alt={logo.alt}
+                  className="w-full h-full object-contain"
+                  style={{ mixBlendMode: "screen", opacity: 0.8 }}
+                />
+              </div>
+            ))}
+          </AnimatedGroup>
         </motion.div>
       )}
     </AnimatePresence>
@@ -489,41 +473,6 @@ function InputForm({
                     </div>
                   </div>
 
-                  {/* Avatar trust pill — shown after first assistant message, fades when user sends */}
-                  {i === 0 && msg.role === "assistant" && (
-                    <AnimatePresence>
-                      {!messages.some((m) => m.role === "user") && (
-                        <motion.div
-                          key="trust-pill"
-                          initial={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-                          exit={{ opacity: 0, filter: "blur(8px)", y: -6 }}
-                          transition={{ duration: 0.55, ease: [0.4, 0, 0.2, 1] }}
-                          className="flex justify-start"
-                        >
-                          <div className="flex items-center rounded-full px-2 py-1 gap-1.5 bg-muted/60 border border-border/50 shadow-sm">
-                            <div className="flex -space-x-1.5">
-                              {[
-                                { src: "/profile.jpeg", fb: "AE" },
-                                { src: "/profile.jpeg", fb: "PD" },
-                                { src: "/profile.jpeg", fb: "HA" },
-                                { src: "/profile.jpeg", fb: "JS" },
-                              ].map((av, j) => (
-                                <Avatar key={j} className="size-5 border-2 border-background">
-                                  <AvatarImage src={av.src} alt={av.fb} className="hover:z-10 object-cover" />
-                                  <AvatarFallback className="text-[8px] bg-purple-700 text-white">{av.fb}</AvatarFallback>
-                                </Avatar>
-                              ))}
-                            </div>
-                            <p className="text-[11px] text-muted-foreground pr-1">
-                              Trusted by{" "}
-                              <span className="font-semibold text-foreground">2,000+</span>{" "}
-                              agents &amp; hosts
-                            </p>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  )}
                 </React.Fragment>
               ))}
 
