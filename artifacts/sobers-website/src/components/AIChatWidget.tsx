@@ -162,7 +162,7 @@ function ChatTrustedLogos({ visible }: { visible: boolean }) {
                 className={cn(
                   "flex items-center justify-center",
                   logo.alt === "Rightmove" || logo.alt === "Booking.com"
-                    ? "h-16"
+                    ? "h-20"
                     : "h-10"
                 )}
               >
