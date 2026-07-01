@@ -62,10 +62,6 @@ export default function App() {
 
         <div className="relative max-w-3xl mx-auto text-center">
           {/* eyebrow */}
-          <p className="text-xs font-semibold tracking-[0.2em] uppercase text-blue-400/70 mb-4">
-            Conversion Pipeline
-          </p>
-
           {/* The loader — looping, property-conversion phases */}
           <ProgressiveFluxLoader
             duration={8}
