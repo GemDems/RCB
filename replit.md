@@ -1,49 +1,53 @@
-# Sobers Website
+# Sobers — Property Marketing Platform
 
-A property marketing web application with hyper-realistic 3D walkthroughs and virtual tours.
+A property marketing platform offering hyper-realistic 3D walkthroughs and digital twins. Buyers can explore properties virtually before visiting, powered by AI chat and photorealistic renders.
 
 ## Stack
 
-- **Frontend**: React 19 + Vite + Tailwind CSS 4 + Radix UI + Framer Motion (path: `artifacts/sobers-website/`)
-- **Backend**: Express 5 + Pino logging (path: `artifacts/api-server/`)
-- **Database**: PostgreSQL + Drizzle ORM (schema in `lib/db/` — currently empty boilerplate)
-- **API layer**: OpenAPI-first; codegen via `orval` produces React Query hooks (`lib/api-client-react/`) and Zod schemas (`lib/api-zod/`)
-- **Monorepo**: pnpm workspaces
+| Layer | Tech |
+|-------|------|
+| Frontend | React 19, Vite 7, Tailwind CSS 4, Framer Motion, Wouter, Radix UI |
+| Backend | Node.js, Express 5, TypeScript (ESM) |
+| Database | PostgreSQL via Drizzle ORM |
+| AI | Cohere AI (chat widget) |
+| Email | Resend |
+| Monorepo | pnpm workspaces |
 
-## Running locally on Replit
+## Project Structure
 
-Both services start automatically via workflows:
-
-| Workflow | Command |
-|---|---|
-| `artifacts/sobers-website: web` | `pnpm --filter @workspace/sobers-website run dev` |
-| `artifacts/api-server: API Server` | `pnpm --filter @workspace/api-server run dev` |
-
-The frontend proxies `/api` requests to the API server at `localhost:8080`.
-
-## Environment variables / secrets
-
-| Variable | Required | Notes |
-|---|---|---|
-| `DATABASE_URL` | For DB features | PostgreSQL connection string — set in Replit Secrets |
-| `SESSION_SECRET` | For sessions | Set in Replit Secrets |
-| `COHERE_API_KEY` | For AI chat | Powers `/api/chat`; without it the chat widget fails at runtime — set in Replit Secrets |
-| `PORT` | Auto-set | Injected by Replit per artifact |
-| `BASE_PATH` | Auto-set | Injected by Replit per artifact |
-
-## Useful commands
-
-```bash
-# Install dependencies
-pnpm install
-
-# Run codegen (regenerate API client from openapi.yaml)
-pnpm --filter @workspace/api-spec run codegen
-
-# Typecheck everything
-pnpm run typecheck
+```
+artifacts/
+  api-server/       — Express backend (port from $PORT env var)
+  sobers-website/   — React/Vite frontend
+  mockup-sandbox/   — Design canvas preview tool
+lib/
+  db/               — Drizzle schema and database client
+  api-zod/          — Shared Zod validation schemas
+  api-client-react/ — React API client hooks
 ```
 
-## User preferences
+## Running the Project
 
-<!-- Agent: add user preferences here when asked to remember something -->
+Both services start automatically via Replit workflows:
+
+- **Frontend** (`artifacts/sobers-website: web`): `pnpm --filter @workspace/sobers-website run dev`
+- **API Server** (`artifacts/api-server: API Server`): `pnpm --filter @workspace/api-server run dev`
+
+The API server builds with esbuild before starting (`build.mjs`), then runs the compiled output from `dist/`.
+
+## Required Secrets
+
+| Secret | Purpose |
+|--------|---------|
+| `SESSION_SECRET` | Express session signing |
+| `COHERE_API_KEY` | AI chat widget |
+| `RESEND_API_KEY` | Email sending |
+| `DATABASE_URL` | PostgreSQL (auto-provisioned by Replit) |
+
+## Database
+
+Schema lives in `lib/db/src/schema/`. Run `pnpm --filter @workspace/db run push` to apply schema changes to development. Replit manages production schema diffs at publish time.
+
+## User Preferences
+
+- Keep the project's existing structure and stack.
