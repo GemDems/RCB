@@ -123,8 +123,6 @@ export function HeroSearchBar({ onSearch, className }: HeroSearchBarProps) {
             />
           </form>
 
-          {/* Input fade mask */}
-          <div id="input-mask" className="pointer-events-none w-[100px] h-[20px] absolute bg-gradient-to-r from-transparent to-black top-[18px] left-[70px] group-focus-within:hidden" />
 
           {/* Pink ambient glow */}
           <div id="pink-mask" className="pointer-events-none w-[30px] h-[20px] absolute bg-[#cf30aa] top-[10px] left-[5px] blur-2xl opacity-80 transition-all duration-2000 group-hover:opacity-0" />
