@@ -4,6 +4,7 @@ import { HeroSection } from "@/components/HeroSection"
 import { CinematicFooter } from "@/components/CinematicFooter"
 import { ProgressiveFluxLoader } from "@/components/ui/progressive-flux-loader"
 import { ProgressiveBlur } from "@/components/ui/progressive-blur"
+import { AIChatWidget } from "@/components/AIChatWidget"
 
 function FadingBlur({
   containerRef,
@@ -120,6 +121,9 @@ export default function App() {
         <CinematicFooter />
         <ProgressiveBlur position="top" height="20%" />
       </div>
+
+      {/* ── AI Chat Widget ── */}
+      <AIChatWidget />
 
     </div>
   )
