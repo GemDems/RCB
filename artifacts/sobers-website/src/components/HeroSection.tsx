@@ -72,25 +72,35 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
           <RetroGrid {...gridOptions} />
           <div className="max-w-screen-xl z-10 mx-auto px-4 py-28 gap-12 md:px-8">
             <div className="space-y-5 max-w-3xl leading-0 lg:leading-5 mx-auto text-center">
-              <h1 className="text-sm text-gray-400 group mx-auto px-5 py-2 bg-gradient-to-tr from-zinc-300/5 via-gray-400/5 to-transparent border-[2px] border-white/5 rounded-3xl w-fit">
-                {title}
-                <ChevronRight className="inline w-4 h-4 ml-2 group-hover:translate-x-1 duration-300" />
-              </h1>
+
+              {/* Badge — ShinyButton effect, small pill style */}
+              <div className="flex justify-center">
+                <a href="#" className="shiny-cta !py-2 !px-5 !text-sm !font-medium group">
+                  <span className="flex items-center gap-1.5">
+                    {title}
+                    <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
+                  </span>
+                </a>
+              </div>
+
               <h2 className="text-4xl tracking-tighter mx-auto md:text-6xl text-white font-black">
                 {subtitle.regular}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-orange-200">
                   {subtitle.gradient}
                 </span>
               </h2>
+
               <p className="max-w-2xl mx-auto text-gray-300">
                 {description}
               </p>
+
               <div className="flex items-center justify-center pt-2">
                 <ShinyButton href={ctaHref}>
                   {ctaText}
                 </ShinyButton>
               </div>
             </div>
+
             <ActiveUsersWidget />
           </div>
         </section>
