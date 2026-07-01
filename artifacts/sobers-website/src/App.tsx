@@ -1,27 +1,31 @@
 import { HeroSection } from "@/components/HeroSection"
 import { CinematicFooter } from "@/components/CinematicFooter"
 import { ProgressiveFluxLoader } from "@/components/ui/progressive-flux-loader"
+import { ProgressiveBlur } from "@/components/ui/progressive-blur"
 
 export default function App() {
   return (
     <div className="relative w-full bg-background text-foreground overflow-x-hidden font-sans dark">
-      <HeroSection
-        title="Property Marketing Reimagined"
-        subtitle={{
-          regular: "Your property, ",
-          gradient: "sold before they visit.",
-        }}
-        description="Hyper-realistic 3D walkthroughs and virtual tours that give buyers and guests the confidence to book — before ever stepping inside. Interactive digital twins, photorealistic renders, and marketing assets all from a single model."
-        ctaText="Book a Free Demo"
-        ctaHref="#"
-        gridOptions={{
-          angle: 65,
-          opacity: 0.4,
-          cellSize: 50,
-          lightLineColor: "#4a4a4a",
-          darkLineColor: "#2a2a2a",
-        }}
-      />
+      <div className="relative">
+        <HeroSection
+          title="Property Marketing Reimagined"
+          subtitle={{
+            regular: "Your property, ",
+            gradient: "sold before they visit.",
+          }}
+          description="Hyper-realistic 3D walkthroughs and virtual tours that give buyers and guests the confidence to book — before ever stepping inside. Interactive digital twins, photorealistic renders, and marketing assets all from a single model."
+          ctaText="Book a Free Demo"
+          ctaHref="#"
+          gridOptions={{
+            angle: 65,
+            opacity: 0.4,
+            cellSize: 50,
+            lightLineColor: "#4a4a4a",
+            darkLineColor: "#2a2a2a",
+          }}
+        />
+        <ProgressiveBlur position="bottom" height="25%" />
+      </div>
 
       {/* ── ROI Pull Quote ── */}
       <section className="relative py-32 px-6 overflow-hidden">
@@ -50,6 +54,8 @@ export default function App() {
             </a>
           </div>
         </div>
+
+        <ProgressiveBlur position="bottom" height="25%" />
       </section>
 
       {/* ── Max Conversion to ∞ ── */}
@@ -79,23 +85,15 @@ export default function App() {
             className="max-w-lg mx-auto"
           />
 
-          {/* stat strip below the bar */}
-          <div className="mt-16 grid grid-cols-3 gap-6 max-w-lg mx-auto">
-            {[
-              { value: "3.4×", label: "more enquiries" },
-              { value: "68%", label: "faster to offer" },
-              { value: "Trusted", label: "by top agents" },
-            ].map(({ value, label }) => (
-              <div key={label} className="flex flex-col items-center gap-1">
-                <span className="text-3xl font-black text-white">{value}</span>
-                <span className="text-xs text-gray-500 uppercase tracking-widest">{label}</span>
-              </div>
-            ))}
-          </div>
         </div>
+
+        <ProgressiveBlur position="bottom" height="25%" />
       </section>
 
-      <CinematicFooter />
+      <div className="relative">
+        <CinematicFooter />
+        <ProgressiveBlur position="top" height="20%" />
+      </div>
     </div>
   )
 }
