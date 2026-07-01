@@ -12,14 +12,14 @@ import { TextShimmer } from "./ui/shimmer-text"
 import { StarButton } from "./ui/star-button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { AnimatedGroup } from "./ui/animated-group"
-import logoAirbnb      from "../assets/logo-airbnb.png"
-import logoRightmove   from "../assets/logo-rightmove.png"
-import logoBooking     from "../assets/logo-booking.png"
-import logoZoopla      from "../assets/logo-zoopla.png"
-import logoKnightFrank from "../assets/logo-knightfrank.png"
-import logoSavills     from "../assets/logo-savills.png"
-import logoCBRE        from "../assets/logo-cbre.png"
-import logoJLL         from "../assets/logo-jll.png"
+import logoAirbnb      from "@assets/airbnb-logo-0_1782897183247.webp"
+import logoRightmove   from "@assets/rightmove-logo_brandlogos.net_uyygd-512x512_1782897187432.webp"
+import logoBooking     from "@assets/1825430_1782897190697.webp"
+import logoZoopla      from "@assets/Zoopla-Logo-2010-500x281_1782897194833.webp"
+import logoKnightFrank from "@assets/knight-frank-logo-png-transparent_1782897198757.webp"
+import logoSavills     from "@assets/savills_1782897202584.webp"
+import logoCBRE        from "@assets/CBRE-Logo-500x281_1782897205703.webp"
+import logoJLL         from "@assets/JLL-logo-white-300x133_1782897772703.webp"
 
 /* ─────────────────────────────────────────────
    ColorOrb
@@ -111,14 +111,14 @@ type InputMode = { search: boolean; think: boolean; canvas: boolean }
    Trusted logos shown above input until first message
 ───────────────────────────────────────────── */
 const CHAT_LOGOS = [
-  { src: logoAirbnb,      alt: "Airbnb"       },
-  { src: logoRightmove,   alt: "Rightmove"    },
-  { src: logoBooking,     alt: "Booking.com"  },
-  { src: logoZoopla,      alt: "Zoopla"       },
-  { src: logoKnightFrank, alt: "Knight Frank" },
-  { src: logoSavills,     alt: "Savills"      },
-  { src: logoCBRE,        alt: "CBRE"         },
-  { src: logoJLL,         alt: "JLL"          },
+  { src: logoAirbnb,      alt: "Airbnb",       height: 48 },
+  { src: logoRightmove,   alt: "Rightmove",    height: 100 },
+  { src: logoBooking,     alt: "Booking.com",  height: 90 },
+  { src: logoZoopla,      alt: "Zoopla",       height: 30 },
+  { src: logoKnightFrank, alt: "Knight Frank", height: 46 },
+  { src: logoSavills,     alt: "Savills",      height: 44 },
+  { src: logoCBRE,        alt: "CBRE",         height: 28 },
+  { src: logoJLL,         alt: "JLL",          height: 34 },
 ]
 
 const chatLogoTransitionVariants = {
@@ -154,21 +154,15 @@ function ChatTrustedLogos({ visible }: { visible: boolean }) {
               },
               ...chatLogoTransitionVariants,
             }}
-            className="grid grid-cols-4 gap-x-2 gap-y-5 items-center"
+            className="grid grid-cols-4 gap-x-3 gap-y-4"
           >
             {CHAT_LOGOS.map((logo) => (
-              <div key={logo.alt} className="flex items-center justify-center">
+              <div key={logo.alt} className="flex items-center justify-center h-10">
                 <img
                   src={logo.src}
                   alt={logo.alt}
-                  width="auto"
-                  style={{
-                    height: logo.height,
-                    maxWidth: "100%",
-                    mixBlendMode: "screen",
-                    opacity: 0.85,
-                    display: "block",
-                  }}
+                  className="w-full h-full object-contain"
+                  style={{ mixBlendMode: "screen", opacity: 0.8 }}
                 />
               </div>
             ))}
