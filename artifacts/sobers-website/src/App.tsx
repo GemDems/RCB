@@ -51,7 +51,7 @@ export default function App() {
             gradient: "sold before they visit.",
           }}
           description="Hyper-realistic 3D walkthroughs and virtual tours that give buyers and guests the confidence to book — before ever stepping inside. Interactive digital twins, photorealistic renders, and marketing assets all from a single model."
-          ctaText="Book a Free Demo"
+          ctaText="Get Your Free 3D Demo"
           ctaHref="#"
           onSearch={handleHeroSearch}
           gridOptions={{
@@ -88,7 +88,7 @@ export default function App() {
           </p>
           <div className="mt-10 flex justify-center">
             <a href="#" className="shiny-cta !py-3 !px-8 !text-base">
-              <span>Book a Free Demo</span>
+              <span>Get Your Free 3D Demo</span>
             </a>
           </div>
         </div>

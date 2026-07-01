@@ -190,7 +190,7 @@ const useFormCtx = () => React.useContext(FormCtx)
 
 interface Msg { role: "user" | "assistant"; content: string }
 
-const WELCOME = "Hi! Ask me anything about 3D walkthroughs, virtual tours, or how we help you book more — whether you're an estate agent, property developer, or host on Airbnb, Vrbo, Booking.com, or any other platform. What would you like to know?"
+const WELCOME = "Hi! We create a free 3D walkthrough demo of your actual property — no commitment needed. Ask me anything about how it works, whether you're an estate agent, property developer, or host on Airbnb, Vrbo, Booking.com, or any other platform. What would you like to know?"
 
 /* ─────────────────────────────────────────────
    Full Grok Panel — drops down when expanded
