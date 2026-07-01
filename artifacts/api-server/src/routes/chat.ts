@@ -50,7 +50,7 @@ router.post("/chat", async (req, res) => {
     const lastMessage = messages[messages.length - 1];
 
     const stream = await cohere.chatStream({
-      model: "command-r-plus",
+      model: "command-r7b-12-2024",
       preamble: SYSTEM_PROMPT,
       chatHistory: cohereMessages,
       message: lastMessage.content,
