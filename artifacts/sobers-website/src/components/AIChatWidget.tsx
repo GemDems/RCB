@@ -139,7 +139,7 @@ function DockBar() {
           variant="ghost"
           onClick={triggerOpen}
         >
-          <span className="truncate">Ask AI</span>
+          <span className="truncate">Ask Agent</span>
         </Button>
       </div>
     </footer>
@@ -207,7 +207,7 @@ function InputForm({
             {/* ── Header row — exact replica ── */}
             <div className="flex shrink-0 items-center justify-between py-1">
               <p className="text-foreground z-2 ml-[38px] flex items-center gap-[6px] select-none text-sm">
-                Ask AI
+                Ask Agent
               </p>
               <button
                 type="submit"
