@@ -78,6 +78,15 @@
   --radius: 0.5rem;
 }
 
+@keyframes grid {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(calc(var(--cell-size) * 1)); }
+}
+
+.animate-grid {
+  animation: grid 15s linear infinite;
+}
+
 @layer base {
   * {
     @apply border-border;
