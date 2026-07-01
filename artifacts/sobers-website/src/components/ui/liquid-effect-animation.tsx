@@ -40,6 +40,23 @@ export function LiquidEffectAnimation() {
           app.liquidPlane.uniforms.displacementScale.value = 5;
           app.setRain(false);
           window.__liquidApp = app;
+
+          // Replace any library attribution with Sobers branding
+          const replaceAttribution = () => {
+            document.querySelectorAll('a, div, span').forEach(el => {
+              if (el.textContent && el.textContent.trim().match(/^21st\\.dev$/i)) {
+                el.textContent = 'Sell faster with Sobers';
+                el.removeAttribute('href');
+                el.style.cssText = 'color:rgba(255,255,255,0.35);font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;pointer-events:none;text-decoration:none;font-family:sans-serif';
+              }
+            });
+          };
+
+          // Run immediately and observe for late injection
+          replaceAttribution();
+          const observer = new MutationObserver(replaceAttribution);
+          observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+          window.__liquidObserver = observer;
         }
       } catch (e) {
         // WebGL unavailable or CDN load failed — degrade silently
@@ -51,6 +68,10 @@ export function LiquidEffectAnimation() {
       if (window.__liquidApp?.dispose) {
         window.__liquidApp.dispose()
         window.__liquidApp = undefined
+      }
+      if (window.__liquidObserver) {
+        window.__liquidObserver.disconnect()
+        window.__liquidObserver = undefined
       }
       if (document.body.contains(script)) document.body.removeChild(script)
     }
@@ -70,5 +91,6 @@ export function LiquidEffectAnimation() {
 declare global {
   interface Window {
     __liquidApp?: any
+    __liquidObserver?: MutationObserver
   }
 }
