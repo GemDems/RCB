@@ -84,7 +84,7 @@ export default function App() {
             {[
               { value: "3.4×", label: "more enquiries" },
               { value: "68%", label: "faster to offer" },
-              { value: "∞", label: "conversion ceiling" },
+              { value: "Trusted", label: "by top agents" },
             ].map(({ value, label }) => (
               <div key={label} className="flex flex-col items-center gap-1">
                 <span className="text-3xl font-black text-white">{value}</span>
