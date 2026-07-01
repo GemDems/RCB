@@ -473,6 +473,42 @@ function InputForm({
                     </div>
                   </div>
 
+                  {/* Avatar trust pill — shown after first assistant message, fades when user sends */}
+                  {i === 0 && msg.role === "assistant" && (
+                    <AnimatePresence>
+                      {!messages.some((m) => m.role === "user") && (
+                        <motion.div
+                          key="trust-pill"
+                          initial={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+                          exit={{ opacity: 0, filter: "blur(8px)", y: -6 }}
+                          transition={{ duration: 0.55, ease: [0.4, 0, 0.2, 1] }}
+                          className="flex justify-start"
+                        >
+                          <div className="flex items-center rounded-full px-2 py-1 gap-1.5 bg-muted/60 border border-border/50 shadow-sm">
+                            <div className="flex -space-x-1.5">
+                              {[
+                                { src: "/profile.jpeg", fb: "AE" },
+                                { src: "/profile.jpeg", fb: "PD" },
+                                { src: "/profile.jpeg", fb: "HA" },
+                                { src: "/profile.jpeg", fb: "JS" },
+                              ].map((av, j) => (
+                                <Avatar key={j} className="size-5 border-2 border-background">
+                                  <AvatarImage src={av.src} alt={av.fb} className="hover:z-10 object-cover" />
+                                  <AvatarFallback className="text-[8px] bg-purple-700 text-white">{av.fb}</AvatarFallback>
+                                </Avatar>
+                              ))}
+                            </div>
+                            <p className="text-[11px] text-muted-foreground pr-1">
+                              Trusted by{" "}
+                              <span className="font-semibold text-foreground">2,000+</span>{" "}
+                              agents &amp; hosts
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  )}
+
                 </React.Fragment>
               ))}
 
