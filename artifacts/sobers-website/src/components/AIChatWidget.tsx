@@ -112,14 +112,26 @@ type InputMode = { search: boolean; think: boolean; canvas: boolean }
 ───────────────────────────────────────────── */
 const CHAT_LOGOS = [
   { src: logoAirbnb,      alt: "Airbnb",       height: 28 },
-  { src: logoRightmove,   alt: "Rightmove",    height: 14 },
-  { src: logoBooking,     alt: "Booking.com",  height: 14 },
-  { src: logoZoopla,      alt: "Zoopla",       height: 18 },
+  { src: logoRightmove,   alt: "Rightmove",    height: 13 },
+  { src: logoBooking,     alt: "Booking.com",  height: 13 },
+  { src: logoZoopla,      alt: "Zoopla",       height: 17 },
   { src: logoKnightFrank, alt: "Knight Frank", height: 26 },
   { src: logoSavills,     alt: "Savills",      height: 24 },
-  { src: logoCBRE,        alt: "CBRE",         height: 16 },
-  { src: logoJLL,         alt: "JLL",          height: 20 },
+  { src: logoCBRE,        alt: "CBRE",         height: 15 },
+  { src: logoJLL,         alt: "JLL",          height: 19 },
 ]
+
+const chatLogoTransitionVariants = {
+  item: {
+    hidden:   { opacity: 0, filter: "blur(12px)", y: 12 },
+    visible:  {
+      opacity: 1,
+      filter: "blur(0px)",
+      y: 0,
+      transition: { type: "spring", bounce: 0.3, duration: 1.5 },
+    },
+  },
+}
 
 function ChatTrustedLogos({ visible }: { visible: boolean }) {
   return (
@@ -127,44 +139,50 @@ function ChatTrustedLogos({ visible }: { visible: boolean }) {
       {visible && (
         <motion.div
           key="trusted-logos"
-          initial={{ opacity: 0, filter: "blur(8px)", y: 4 }}
-          animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-          exit={{ opacity: 0, filter: "blur(10px)", y: -3 }}
-          transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
-          className="shrink-0 px-2 pt-1 pb-2 border-t border-border/40"
+          initial={{ opacity: 0, filter: "blur(12px)", y: 10 }}
+          animate={{ opacity: 1, filter: "blur(0px)",  y: 0  }}
+          exit={{    opacity: 0, filter: "blur(12px)", y: -6 }}
+          transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+          className="shrink-0 px-3 pb-3 pt-2"
         >
-          <p className="text-[9px] text-muted-foreground/60 text-center mb-1.5 tracking-widest uppercase font-medium">
-            Trusted by
+          {/* Label */}
+          <p className="text-[9px] text-muted-foreground/50 text-center mb-3 tracking-widest uppercase font-medium">
+            Trusted by leading brands
           </p>
-          <AnimatedGroup
-            variants={{
-              container: {
-                visible: {
-                  transition: { staggerChildren: 0.05, delayChildren: 0.05 },
+
+          {/* Grid with hover overlay — mirrors CustomersSection exactly */}
+          <div className="group relative">
+            {/* Hover overlay: "Meet Our Customers" */}
+            <div className="absolute inset-0 z-10 flex scale-95 items-center justify-center opacity-0 duration-500 group-hover:scale-100 group-hover:opacity-100 pointer-events-none">
+              <span className="text-[11px] text-foreground/80 font-medium tracking-wide">
+                Trusted by leading teams
+              </span>
+            </div>
+
+            {/* Animated logo grid */}
+            <AnimatedGroup
+              variants={{
+                container: {
+                  visible: {
+                    transition: { staggerChildren: 0.05, delayChildren: 0.75 },
+                  },
                 },
-              },
-              item: {
-                hidden: { opacity: 0, filter: "blur(4px)", y: 3 },
-                visible: {
-                  opacity: 1,
-                  filter: "blur(0px)",
-                  y: 0,
-                  transition: { type: "spring", bounce: 0.2, duration: 0.9 },
-                },
-              },
-            }}
-            className="flex items-center justify-between gap-x-2 overflow-hidden"
-          >
-            {CHAT_LOGOS.map((logo) => (
-              <img
-                key={logo.alt}
-                src={logo.src}
-                alt={logo.alt}
-                className="flex-shrink-0 w-auto opacity-70"
-                style={{ height: logo.height, mixBlendMode: "screen" }}
-              />
-            ))}
-          </AnimatedGroup>
+                ...chatLogoTransitionVariants,
+              }}
+              className="grid grid-cols-4 gap-x-4 gap-y-3 transition-all duration-500 group-hover:opacity-50 group-hover:[filter:blur(2px)]"
+            >
+              {CHAT_LOGOS.map((logo) => (
+                <div key={logo.alt} className="flex items-center justify-center">
+                  <img
+                    src={logo.src}
+                    alt={logo.alt}
+                    className="mx-auto h-auto w-fit"
+                    style={{ height: logo.height, mixBlendMode: "screen", opacity: 0.75 }}
+                  />
+                </div>
+              ))}
+            </AnimatedGroup>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
@@ -538,7 +556,7 @@ function InputForm({
             <ChatTrustedLogos visible={!messages.some((m) => m.role === "user")} />
 
             {/* Input box */}
-            <div className="shrink-0 mt-0.5 [&_.rounded-3xl]:rounded-xl [&_.p-2]:p-1.5">
+            <div className="shrink-0 mt-4 [&_.rounded-3xl]:rounded-xl [&_.p-2]:p-1.5">
               <PromptInputBox
                 onSend={(text) => onSend(text)}
                 onStop={onStop}
