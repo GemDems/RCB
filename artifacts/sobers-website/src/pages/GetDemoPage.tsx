@@ -5,7 +5,6 @@ import React, {
   useMemo, useCallback, createContext, Children,
 } from "react";
 import { InteractiveNebulaShader } from "@/components/ui/InteractiveNebulaShader";
-import { LiquidEffectAnimation } from "@/components/ui/liquid-effect-animation";
 import ClassicLoader from "@/components/ui/loader";
 import { cva, type VariantProps } from "class-variance-authority";
 import {
@@ -473,6 +472,11 @@ export default function GetDemoPage() {
       <Modal />
 
       {/* ── Top bar — exact replica position ── */}
+      {/* ── Top bar ── */}
+      <div className={cn("fixed top-4 left-4 z-20 flex items-center gap-2", "md:left-1/2 md:-translate-x-1/2")}>
+        <h1 className="text-base font-bold text-foreground">3D Property Demo</h1>
+      </div>
+
       {/* ── Back button top-left on mobile, doesn't conflict with centered logo ── */}
       <div className="fixed top-4 right-4 z-20">
         <button onClick={() => navigate("/")}
@@ -484,12 +488,8 @@ export default function GetDemoPage() {
       {/* ── Main area — exact replica structure ── */}
       <div className={cn("flex w-full flex-1 h-full items-center justify-center", "relative overflow-hidden")} style={{ background: "#0d0117" }}>
         <div className="absolute inset-0 z-0"><GradientBackground /></div>
-        {/* Liquid effect — subtly blended behind the nebula */}
-        <div className="absolute inset-0 z-[1] pointer-events-none" style={{ opacity: 0.18, mixBlendMode: "screen" }}>
-          <LiquidEffectAnimation />
-        </div>
         {/* Nebula shader — screen-blended on top of SVG gradient at low opacity */}
-        <div className="absolute inset-0 z-[2] pointer-events-none" style={{ opacity: 0.45, mixBlendMode: "screen" }}>
+        <div className="absolute inset-0 z-[1] pointer-events-none" style={{ opacity: 0.45, mixBlendMode: "screen" }}>
           <InteractiveNebulaShader />
         </div>
 
