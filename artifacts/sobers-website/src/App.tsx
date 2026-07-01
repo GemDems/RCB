@@ -66,13 +66,6 @@ export default function App() {
             Conversion Pipeline
           </p>
 
-          <h2 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-tight mb-4">
-            Max conversion to{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-cyan-300 to-blue-400">
-              ∞
-            </span>
-          </h2>
-
           <p className="text-gray-400 text-lg max-w-xl mx-auto mb-16">
             Watch cold traffic move through every stage — from first glance to signed deal — powered by immersive 3D walkthroughs that do the selling for you.
           </p>
