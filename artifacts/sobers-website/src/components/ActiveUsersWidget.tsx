@@ -76,7 +76,7 @@ export function ActiveUsersWidget() {
   }, [])
 
   return (
-    <div className="mt-20 flex flex-col items-center gap-6">
+    <div className="mt-4 flex flex-col items-center gap-6">
       <GlowCard
         glowColor="purple"
         customSize
