@@ -111,14 +111,14 @@ type InputMode = { search: boolean; think: boolean; canvas: boolean }
    Trusted logos shown above input until first message
 ───────────────────────────────────────────── */
 const CHAT_LOGOS = [
-  { src: logoAirbnb,      alt: "Airbnb",       height: 48 },
-  { src: logoRightmove,   alt: "Rightmove",    height: 100 },
-  { src: logoBooking,     alt: "Booking.com",  height: 90 },
-  { src: logoZoopla,      alt: "Zoopla",       height: 30 },
-  { src: logoKnightFrank, alt: "Knight Frank", height: 46 },
-  { src: logoSavills,     alt: "Savills",      height: 44 },
-  { src: logoCBRE,        alt: "CBRE",         height: 28 },
-  { src: logoJLL,         alt: "JLL",          height: 34 },
+  { src: logoAirbnb,      alt: "Airbnb",       large: false },
+  { src: logoRightmove,   alt: "Rightmove",    large: true  },
+  { src: logoBooking,     alt: "Booking.com",  large: true  },
+  { src: logoZoopla,      alt: "Zoopla",       large: false },
+  { src: logoKnightFrank, alt: "Knight Frank", large: false },
+  { src: logoSavills,     alt: "Savills",      large: false },
+  { src: logoCBRE,        alt: "CBRE",         large: false },
+  { src: logoJLL,         alt: "JLL",          large: false },
 ]
 
 const chatLogoTransitionVariants = {
@@ -157,7 +157,10 @@ function ChatTrustedLogos({ visible }: { visible: boolean }) {
             className="grid grid-cols-4 gap-x-3 gap-y-4"
           >
             {CHAT_LOGOS.map((logo) => (
-              <div key={logo.alt} className="flex items-center justify-center h-10">
+              <div
+                key={logo.alt}
+                className={`flex items-center justify-center ${logo.large ? "h-[200px]" : "h-10"}`}
+              >
                 <img
                   src={logo.src}
                   alt={logo.alt}
@@ -440,10 +443,10 @@ function InputForm({
                   Go back
                 </Button>
               </div>
-              <p className="flex shrink-0 items-center gap-[6px] select-none text-sm text-foreground/70">
+              <span className="flex shrink-0 items-center gap-[6px] select-none text-sm text-foreground/70">
                 <ColorOrb dimension="14px" tones={ORB_TONES} />
                 Ask Agent
-              </p>
+              </span>
               <div className="flex-1 flex justify-end">
                 <StarButton
                   onClick={triggerReset}

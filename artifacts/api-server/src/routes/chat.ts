@@ -34,10 +34,15 @@ Rules:
 - No bullet points, no headers, no greetings, no sign-offs.
 - Output ONLY the final reply text — nothing else.`;
 
+const MIN_STREAM_MS = 5000;
+const CHAR_DELAY_MS = 28; // ms per character — keeps each token visible as it arrives
+
 interface Message {
   role: "user" | "assistant";
   content: string;
 }
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 router.post("/chat", async (req, res) => {
   try {
@@ -60,7 +65,7 @@ router.post("/chat", async (req, res) => {
 
     const lastMessage = messages[messages.length - 1];
 
-    // ── Pass 1: Generate initial draft (collected server-side, not streamed) ──
+    // ── Pass 1: Generate initial draft (collected server-side) ──
     let draft = "";
     const pass1 = await cohere.chatStream({
       model: "command-r7b-12-2024",
@@ -76,7 +81,7 @@ router.post("/chat", async (req, res) => {
       }
     }
 
-    // ── Pass 2: Refine for maximum conversion — stream this to the client ──
+    // ── Pass 2: Refine — collect full response ──
     const refinePrompt = `Here is a draft sales reply from the Sobers AI agent:
 
 ---
@@ -87,6 +92,7 @@ The visitor's original question was: "${lastMessage.content}"
 
 Rewrite this reply to maximise conversion. Make it more compelling, more specific, and end with a stronger, more natural call-to-action to book a free demo. Keep all facts accurate. Output ONLY the final rewritten reply.`;
 
+    let refined = "";
     const pass2 = await cohere.chatStream({
       model: "command-r7b-12-2024",
       preamble: REFINE_PREAMBLE,
@@ -97,8 +103,24 @@ Rewrite this reply to maximise conversion. Make it more compelling, more specifi
 
     for await (const event of pass2) {
       if (event.eventType === "text-generation") {
-        res.write(`data: ${JSON.stringify({ content: event.text })}\n\n`);
+        refined += event.text;
       }
+    }
+
+    // ── Stream refined text character-by-character over ≥5 seconds ──
+    const chars = refined.split("");
+    const naturalDelay = Math.max(CHAR_DELAY_MS, Math.floor(MIN_STREAM_MS / chars.length));
+    const streamStart = Date.now();
+
+    for (let i = 0; i < chars.length; i++) {
+      res.write(`data: ${JSON.stringify({ content: chars[i] })}\n\n`);
+      await sleep(naturalDelay);
+    }
+
+    // Pad to minimum duration if response was very short
+    const elapsed = Date.now() - streamStart;
+    if (elapsed < MIN_STREAM_MS) {
+      await sleep(MIN_STREAM_MS - elapsed);
     }
 
     res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
