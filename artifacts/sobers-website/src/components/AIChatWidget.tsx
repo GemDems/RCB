@@ -11,6 +11,7 @@ import { AgentsThinkingBadge, PALETTES, PixelOrb } from "./ui/grok-agent-thinkin
 import { TextShimmer } from "./ui/shimmer-text"
 import { StarButton } from "./ui/star-button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { AnimatedGroup } from "./ui/animated-group"
 
 /* ─────────────────────────────────────────────
    ColorOrb
@@ -97,6 +98,69 @@ const COOKING_PHASES = [
 ]
 
 type InputMode = { search: boolean; think: boolean; canvas: boolean }
+
+/* ─────────────────────────────────────────────
+   Trusted logos shown above input until first message
+───────────────────────────────────────────── */
+const CHAT_LOGOS = [
+  { src: "https://html.tailus.io/blocks/customers/nvidia.svg",       alt: "Nvidia",       height: 14 },
+  { src: "https://html.tailus.io/blocks/customers/github.svg",       alt: "GitHub",       height: 14 },
+  { src: "https://html.tailus.io/blocks/customers/nike.svg",         alt: "Nike",         height: 16 },
+  { src: "https://html.tailus.io/blocks/customers/laravel.svg",      alt: "Laravel",      height: 14 },
+  { src: "https://html.tailus.io/blocks/customers/openai.svg",       alt: "OpenAI",       height: 16 },
+  { src: "https://html.tailus.io/blocks/customers/lemonsqueezy.svg", alt: "LemonSqueezy", height: 16 },
+]
+
+function ChatTrustedLogos({ visible }: { visible: boolean }) {
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          key="trusted-logos"
+          initial={{ opacity: 0, filter: "blur(8px)", y: 6 }}
+          animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+          exit={{ opacity: 0, filter: "blur(10px)", y: -4 }}
+          transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+          className="shrink-0 px-1 pb-1"
+        >
+          <p className="text-[10px] text-muted-foreground text-center mb-2 tracking-wide uppercase font-medium">
+            Trusted by leading teams
+          </p>
+          <AnimatedGroup
+            variants={{
+              container: {
+                visible: {
+                  transition: { staggerChildren: 0.07, delayChildren: 0.1 },
+                },
+              },
+              item: {
+                hidden: { opacity: 0, filter: "blur(6px)", y: 6 },
+                visible: {
+                  opacity: 1,
+                  filter: "blur(0px)",
+                  y: 0,
+                  transition: { type: "spring", bounce: 0.3, duration: 1.2 },
+                },
+              },
+            }}
+            className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2"
+          >
+            {CHAT_LOGOS.map((logo) => (
+              <img
+                key={logo.alt}
+                src={logo.src}
+                alt={logo.alt}
+                height={logo.height}
+                className="h-auto opacity-50 dark:invert"
+                style={{ height: logo.height }}
+              />
+            ))}
+          </AnimatedGroup>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
 
 /* ─────────────────────────────────────────────
    Context
@@ -460,6 +524,9 @@ function InputForm({
 
               <div ref={bottomRef} />
             </div>
+
+            {/* Trusted logos — fades out when user sends first message */}
+            <ChatTrustedLogos visible={!messages.some((m) => m.role === "user")} />
 
             {/* Input box */}
             <div className="shrink-0 mt-0.5 [&_.rounded-3xl]:rounded-xl [&_.p-2]:p-1.5">
