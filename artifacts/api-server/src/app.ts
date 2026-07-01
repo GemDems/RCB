@@ -6,6 +6,9 @@ import { logger } from "./lib/logger";
 
 const app: Express = express();
 
+// Trust Replit's reverse proxy so express-rate-limit can read X-Forwarded-For correctly
+app.set("trust proxy", 1);
+
 app.use(
   pinoHttp({
     logger,
