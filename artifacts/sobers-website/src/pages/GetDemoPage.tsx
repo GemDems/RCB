@@ -9,7 +9,7 @@ import ClassicLoader from "@/components/ui/loader";
 import { cva, type VariantProps } from "class-variance-authority";
 import {
   ArrowRight, ArrowLeft, X, AlertCircle, PartyPopper,
-  Link, Phone, User, Mail,
+  Link, Phone, User,
 } from "lucide-react";
 import {
   AnimatePresence, motion, useInView,
@@ -309,8 +309,7 @@ export default function GetDemoPage() {
   // field state
   const [listingUrl, setListingUrl] = useState("");
   const [listingFocused, setListingFocused] = useState(false);
-  const [email, setEmail]           = useState("");
-  const [phone, setPhone]           = useState("");
+  const [contact, setContact]       = useState("");
   const [name, setName]             = useState("");
 
   // step state — mirrors original: "email" | "password" | "confirmPassword"
@@ -324,8 +323,7 @@ export default function GetDemoPage() {
   const [listingSubmitAttempted, setListingSubmitAttempted] = useState(false);
 
   const confettiRef  = useRef<ConfettiRef>(null);
-  const emailRef     = useRef<HTMLInputElement>(null);
-  const phoneRef     = useRef<HTMLInputElement>(null);
+  const contactRef   = useRef<HTMLInputElement>(null);
   const nameRef      = useRef<HTMLInputElement>(null);
 
   // allowed domains — fetched once on mount
@@ -340,9 +338,7 @@ export default function GetDemoPage() {
   // validation
   const isDomainOk      = isDomainAllowed(listingUrl, allowedDomains);
   const isListingValid  = listingUrl.trim().length >= 5 && isDomainOk;
-  const isEmailValid    = email.trim().length >= 5 && email.includes("@");
-  const isPhoneValid    = phone.trim().replace(/\D/g, "").length >= 7;
-  const isContactValid  = isEmailValid && isPhoneValid;
+  const isContactValid  = contact.trim().length >= 6;
   const isNameValid     = name.trim().length >= 2;
 
   // Typewriter placeholder — active only when input is empty & unfocused
@@ -371,7 +367,7 @@ export default function GetDemoPage() {
     fetch(`${API_BASE}/api/submit-lead`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ listingUrl, email, phone, name }),
+      body: JSON.stringify({ listingUrl, contact, name }),
     }).catch(() => {/* silent — UX already succeeded */});
 
     setTimeout(() => {
@@ -395,14 +391,14 @@ export default function GetDemoPage() {
 
   const handleGoBack = () => {
     if (authStep === "name")    { setAuthStep("contact"); setName(""); }
-    else if (authStep === "contact") { setAuthStep("listing"); setEmail(""); setPhone(""); }
+    else if (authStep === "contact") { setAuthStep("listing"); setContact(""); }
   };
 
   const closeModal = () => { setModalStatus("closed"); setModalErrorMessage(""); };
 
   // auto-focus next field — exact replica pattern
   useEffect(() => {
-    if (authStep === "contact") setTimeout(() => emailRef.current?.focus(), 500);
+    if (authStep === "contact") setTimeout(() => contactRef.current?.focus(), 500);
     else if (authStep === "name") setTimeout(() => nameRef.current?.focus(), 500);
   }, [authStep]);
 
@@ -442,7 +438,7 @@ export default function GetDemoPage() {
                 {modalSteps[modalSteps.length - 1].icon}
                 <p className="text-lg font-medium text-foreground">{modalSteps[modalSteps.length - 1].message}</p>
                 <p className="text-sm text-muted-foreground">
-                  We'll review your listing and reach out to <span className="text-violet-400 font-medium">{email}</span> shortly.
+                  We'll review your listing and reach out to <span className="text-violet-400 font-medium">{contact}</span> shortly.
                 </p>
                 <button onClick={() => navigate("/")}
                   className="mt-2 flex items-center gap-2 text-sm text-violet-400 hover:text-violet-300 transition-colors font-medium">
@@ -545,7 +541,7 @@ export default function GetDemoPage() {
                   </div>
                 </BlurFade>
                 <BlurFade delay={0.25 * 1}>
-                  <p className="text-sm font-medium text-muted-foreground">Both email and phone are required.</p>
+                  <p className="text-sm font-medium text-muted-foreground">Your email or phone number.</p>
                 </BlurFade>
               </motion.div>
             )}
@@ -648,74 +644,44 @@ export default function GetDemoPage() {
                     </div>
                   </BlurFade>
 
-                  {/* ── Contact fields: email + phone both required ── */}
+                  {/* ── Contact field (mirrors password field exactly) ── */}
                   <AnimatePresence>
                     {authStep === "contact" && (
                       <BlurFade key="contact-field" className="w-full">
-                        <div className="relative w-full flex flex-col gap-3">
-                          {/* Email */}
-                          <div className="relative w-full">
-                            <AnimatePresence>
-                              {email.length > 0 && (
-                                <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-                                  transition={{ duration: 0.3 }} className="absolute -top-6 left-4 z-10">
-                                  <label className="text-xs text-muted-foreground font-semibold">Email address</label>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                            <div className="glass-input-wrap w-full">
-                              <div className="glass-input">
-                                <span className="glass-input-text-area" />
-                                <div className="relative z-10 flex-shrink-0 flex items-center justify-center w-10 pl-2">
-                                  <Mail className="h-5 w-5 text-foreground/80 flex-shrink-0" />
-                                </div>
-                                <label htmlFor="demo-email" className="sr-only">Email address</label>
-                                <input id="demo-email" ref={emailRef} type="email" placeholder="Email address"
-                                  value={email} onChange={(e) => setEmail(e.target.value)}
-                                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); phoneRef.current?.focus(); } }}
-                                  className="relative z-10 h-full w-0 flex-grow bg-transparent text-foreground placeholder:text-foreground/60 focus:outline-none"
-                                />
+                        <div className="relative w-full">
+                          <AnimatePresence>
+                            {contact.length > 0 && (
+                              <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+                                transition={{ duration: 0.3 }} className="absolute -top-6 left-4 z-10">
+                                <label className="text-xs text-muted-foreground font-semibold">Email or phone</label>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                          <div className="glass-input-wrap w-full">
+                            <div className="glass-input">
+                              <span className="glass-input-text-area" />
+                              <div className="relative z-10 flex-shrink-0 flex items-center justify-center w-10 pl-2">
+                                <Phone className="h-5 w-5 text-foreground/80 flex-shrink-0" />
+                              </div>
+                              <label htmlFor="demo-contact" className="sr-only">Email or phone number</label>
+                              <input id="demo-contact" ref={contactRef} type="text" placeholder="Email or phone number"
+                                value={contact} onChange={(e) => setContact(e.target.value)} onKeyDown={handleKeyDown}
+                                className="relative z-10 h-full w-0 flex-grow bg-transparent text-foreground placeholder:text-foreground/60 focus:outline-none"
+                              />
+                              <div className={cn(
+                                "relative z-10 flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out",
+                                isContactValid ? "w-10 pr-1" : "w-0",
+                              )}>
+                                <GlassButton type="button" onClick={handleProgressStep} size="icon"
+                                  aria-label="Continue with contact" contentClassName="text-foreground/80 hover:text-foreground">
+                                  <ArrowRight className="w-5 h-5" />
+                                </GlassButton>
                               </div>
                             </div>
                           </div>
-
-                          {/* Phone */}
-                          <div className="relative w-full">
-                            <AnimatePresence>
-                              {phone.length > 0 && (
-                                <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-                                  transition={{ duration: 0.3 }} className="absolute -top-6 left-4 z-10">
-                                  <label className="text-xs text-muted-foreground font-semibold">Phone number</label>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                            <div className="glass-input-wrap w-full">
-                              <div className="glass-input">
-                                <span className="glass-input-text-area" />
-                                <div className="relative z-10 flex-shrink-0 flex items-center justify-center w-10 pl-2">
-                                  <Phone className="h-5 w-5 text-foreground/80 flex-shrink-0" />
-                                </div>
-                                <label htmlFor="demo-phone" className="sr-only">Phone number</label>
-                                <input id="demo-phone" ref={phoneRef} type="tel" placeholder="Phone number"
-                                  value={phone} onChange={(e) => setPhone(e.target.value)} onKeyDown={handleKeyDown}
-                                  className="relative z-10 h-full w-0 flex-grow bg-transparent text-foreground placeholder:text-foreground/60 focus:outline-none"
-                                />
-                                <div className={cn(
-                                  "relative z-10 flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out",
-                                  isContactValid ? "w-10 pr-1" : "w-0",
-                                )}>
-                                  <GlassButton type="button" onClick={handleProgressStep} size="icon"
-                                    aria-label="Continue" contentClassName="text-foreground/80 hover:text-foreground">
-                                    <ArrowRight className="w-5 h-5" />
-                                  </GlassButton>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
                           <BlurFade inView delay={0.2}>
                             <button type="button" onClick={handleGoBack}
-                              className="mt-1 flex items-center gap-2 text-sm text-foreground/70 hover:text-foreground transition-colors">
+                              className="mt-4 flex items-center gap-2 text-sm text-foreground/70 hover:text-foreground transition-colors">
                               <ArrowLeft className="w-4 h-4" /> Go back
                             </button>
                           </BlurFade>
