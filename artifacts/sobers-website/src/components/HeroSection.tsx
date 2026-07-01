@@ -81,10 +81,19 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
     const bgOpacity = useTransform(scrollYProgress, [0, 0.45], [1, 0])
     const bgScale  = useTransform(scrollYProgress, [0, 0.45], [1, 1.06])
 
-    // Gallery: hidden at load → reveals smoothly on scroll (blur + fade + slide-up)
-    const galleryOpacity  = useTransform(scrollYProgress, [0, 0.28], [0, 1])
-    const galleryY        = useTransform(scrollYProgress, [0, 0.28], [60, 0])
-    const galleryFilter   = useTransform(scrollYProgress, [0, 0.28], ["blur(24px)", "blur(0px)"])
+    // Track whether user has started scrolling (to trigger gallery reveal)
+    const [hasScrolled, setHasScrolled] = React.useState(false)
+
+    React.useEffect(() => {
+      const onScroll = () => {
+        if (window.scrollY > 10) {
+          setHasScrolled(true)
+          window.removeEventListener("scroll", onScroll)
+        }
+      }
+      window.addEventListener("scroll", onScroll, { passive: true })
+      return () => window.removeEventListener("scroll", onScroll)
+    }, [])
 
     return (
       <div className={cn("relative", className)} ref={(node) => {
@@ -93,18 +102,24 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
         else if (ref) ref.current = node
       }} {...props}>
 
-        {/* ── Layer 0: Circular Gallery — scroll-revealed, GlowCard spotlight ── */}
+        {/* ── Layer 0: Gallery — invisible at load, pops up the instant scrolling starts ── */}
         <motion.div
-          style={{ opacity: galleryOpacity, y: galleryY, filter: galleryFilter }}
-          className="absolute inset-0 z-[0] pointer-events-none"
+          initial={{ opacity: 0, y: 50, filter: "blur(20px)" }}
+          animate={hasScrolled
+            ? { opacity: 1, y: 0, filter: "blur(0px)" }
+            : { opacity: 0, y: 50, filter: "blur(20px)" }
+          }
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-0 z-[0] pointer-events-none overflow-hidden"
         >
+          <CircularGallery bend={3} borderRadius={0.05} scrollEase={0.02} />
+          {/* GlowCard spotlight overlay — tracks cursor for glow effect */}
           <GlowCard
             customSize
             glowColor="purple"
-            className="w-full h-full !rounded-none !shadow-none !backdrop-blur-none overflow-hidden"
-          >
-            <CircularGallery bend={3} borderRadius={0.05} scrollEase={0.02} />
-          </GlowCard>
+            className="!absolute !inset-0 !rounded-none !shadow-none !backdrop-blur-none !border-transparent"
+            style={{ background: "transparent" }}
+          />
         </motion.div>
 
         {/* ── Layer 1: Radial gradient overlay ── */}
@@ -113,18 +128,16 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
           className="absolute top-0 z-[1] h-screen w-screen bg-[radial-gradient(ellipse_20%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] pointer-events-none"
         />
 
-        {/* ── Layer 2: All hero content — fully above gallery & gradient ── */}
+        {/* ── Layer 2: All hero content ── */}
         <section className="relative max-w-full mx-auto z-[2]">
           <RetroGrid {...gridOptions} />
           <div className="max-w-screen-xl z-10 mx-auto px-4 pt-10 pb-14 md:pt-14 md:pb-28 gap-12 md:px-8">
             <div className="space-y-5 max-w-3xl mx-auto text-center">
 
-              {/* Hero search bar — above the badge */}
               <div className="flex justify-center mb-12">
                 <HeroSearchBar onSearch={onSearch} />
               </div>
 
-              {/* Badge — animated liquid button */}
               <div className="flex justify-center">
                 <LiquidButton href="#">
                   {title}
