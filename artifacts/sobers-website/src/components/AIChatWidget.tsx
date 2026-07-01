@@ -19,7 +19,7 @@ import logoZoopla      from "@assets/Zoopla-Logo-2010-500x281_1782897194833.webp
 import logoKnightFrank from "@assets/knight-frank-logo-png-transparent_1782897198757.webp"
 import logoSavills     from "@assets/savills_1782897202584.webp"
 import logoCBRE        from "@assets/CBRE-Logo-500x281_1782897205703.webp"
-import logoJLL         from "@assets/JLL-Logo-500x281_1782897214917.webp"
+import logoJLL         from "@assets/JLL-logo-white-300x133_1782897772703.webp"
 
 /* ─────────────────────────────────────────────
    ColorOrb
