@@ -269,99 +269,30 @@ function ThinkingArea({
 }
 
 /* ─────────────────────────────────────────────
-   DockBar — with StarButton long-press reset
+   DockBar
 ───────────────────────────────────────────── */
 function DockBar() {
-  const { showForm, triggerOpen, triggerReset } = useFormCtx()
-
-  const holdTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [holding, setHolding] = React.useState(false)
-  const [held, setHeld] = React.useState(false)
-
-  const startHold = React.useCallback(() => {
-    setHolding(true)
-    holdTimerRef.current = setTimeout(() => {
-      setHeld(true)
-      triggerReset()
-      setTimeout(() => setHeld(false), 600)
-    }, 1500)
-  }, [triggerReset])
-
-  const cancelHold = React.useCallback(() => {
-    setHolding(false)
-    if (holdTimerRef.current) {
-      clearTimeout(holdTimerRef.current)
-      holdTimerRef.current = null
-    }
-  }, [])
-
-  React.useEffect(() => () => {
-    if (holdTimerRef.current) clearTimeout(holdTimerRef.current)
-  }, [])
-
+  const { showForm, triggerOpen } = useFormCtx()
   return (
     <footer className="mt-auto flex h-[44px] w-full items-center justify-center whitespace-nowrap select-none">
-      <div className="flex items-center justify-between gap-2 px-3 w-full max-sm:h-10 max-sm:px-2">
-        {/* Left — orb / spacer */}
-        <div className="flex-shrink-0 w-6 flex items-center justify-center">
-          <AnimatePresence mode="wait">
-            {showForm ? (
-              <motion.div key="blank" initial={{ opacity: 0 }} animate={{ opacity: 0 }} exit={{ opacity: 0 }} className="h-5 w-5" />
-            ) : (
-              <motion.div key="orb" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-                <ColorOrb dimension="24px" tones={ORB_TONES} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Centre — Ask Agent */}
+      <div className="flex items-center justify-center gap-2 px-3 max-sm:h-10 max-sm:px-2">
+        <AnimatePresence mode="wait">
+          {showForm ? (
+            <motion.div key="blank" initial={{ opacity: 0 }} animate={{ opacity: 0 }} exit={{ opacity: 0 }} className="h-5 w-5" />
+          ) : (
+            <motion.div key="orb" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+              <ColorOrb dimension="24px" tones={ORB_TONES} />
+            </motion.div>
+          )}
+        </AnimatePresence>
         <Button
           type="button"
-          className="flex h-fit flex-1 justify-center rounded-full px-2 !py-0.5"
+          className="flex h-fit flex-1 justify-end rounded-full px-2 !py-0.5"
           variant="ghost"
           onClick={triggerOpen}
         >
           <span className="truncate">Ask Agent</span>
         </Button>
-
-        {/* Right — StarButton (hold to reset) */}
-        <div className="flex-shrink-0">
-          <AnimatePresence>
-            {showForm && (
-              <motion.div
-                key="star-reset"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.2 }}
-              >
-                <StarButton
-                  lightColor={held ? "#22c55e" : "#a78bfa"}
-                  backgroundColor="transparent"
-                  lightWidth={60}
-                  duration={2}
-                  borderWidth={1}
-                  className={cx(
-                    "h-7 px-2.5 text-xs border border-white/10 bg-background/60",
-                    holding && "scale-95",
-                    held && "scale-90",
-                  )}
-                  onMouseDown={startHold}
-                  onMouseUp={cancelHold}
-                  onMouseLeave={cancelHold}
-                  onTouchStart={startHold}
-                  onTouchEnd={cancelHold}
-                  onTouchCancel={cancelHold}
-                  title="Hold to clear chat history"
-                  aria-label="Hold to reset conversation"
-                >
-                  {held ? "Cleared" : "Reset"}
-                </StarButton>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
       </div>
     </footer>
   )
@@ -399,7 +330,7 @@ function InputForm({
   formW: number
   formH: number
 }) {
-  const { triggerClose, showForm } = useFormCtx()
+  const { triggerClose, triggerReset, showForm } = useFormCtx()
 
   React.useEffect(() => {
     function handleEscape(e: KeyboardEvent) {
@@ -435,7 +366,21 @@ function InputForm({
                 <ColorOrb dimension="14px" tones={ORB_TONES} />
                 Ask Agent
               </p>
-              <div className="flex-1" />
+              <div className="flex-1 flex justify-end">
+                <StarButton
+                  onClick={triggerReset}
+                  lightColor="#a78bfa"
+                  backgroundColor="transparent"
+                  lightWidth={55}
+                  duration={2.5}
+                  borderWidth={1}
+                  className="h-7 px-3 text-xs border border-white/10 bg-background/50 hover:bg-background/80 transition-colors"
+                  title="Start a new conversation"
+                  aria-label="New chat"
+                >
+                  New chat
+                </StarButton>
+              </div>
             </div>
 
             {/* Message history */}
