@@ -1,0 +1,2 @@
+- [Three.js in Replit sandbox](threejs-replit-sandbox.md) — WebGL context creation fails; need isWebGLAvailable() probe + dynamic import("three") + try/catch guard before rendering.
+- [Typewriter animation pattern](typewriter-hook.md) — use a mutable ref state machine (not useState for char index) with recursive setTimeout to avoid re-render cascades.

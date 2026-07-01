@@ -4,6 +4,7 @@ import React, {
   useState, useRef, useEffect, forwardRef, useImperativeHandle,
   useMemo, useCallback, createContext, Children,
 } from "react";
+import { InteractiveNebulaShader } from "@/components/ui/InteractiveNebulaShader";
 import { cva, type VariantProps } from "class-variance-authority";
 import {
   ArrowRight, ArrowLeft, X, AlertCircle, PartyPopper, Loader,
@@ -231,12 +232,66 @@ const TEXT_LOOP_INTERVAL = 1.5;
 // ─── API base (dev vs deployed) ───────────────────────────────────────────────
 const API_BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
+// ─── Animated typewriter placeholder ─────────────────────────────────────────
+const LISTING_EXAMPLES = [
+  "zillow.com/homedetails/95-Oak-St-Denver-CO/12345678_zpid",
+  "airbnb.com/rooms/48291023",
+  "rightmove.co.uk/property-for-sale/118456789.html",
+  "booking.com/hotel/gb/the-grand-lodge.html",
+  "zoopla.co.uk/for-sale/details/56789012",
+  "vrbo.com/vacation-rentals/p1234567vr",
+  "onthemarket.com/details/property/98765432",
+];
+
+function useTypewriter(examples: string[], active: boolean): string {
+  const [display, setDisplay] = useState("");
+  const stateRef = useRef({ idx: 0, char: 0, phase: "typing" as "typing" | "pause" | "deleting" });
+
+  useEffect(() => {
+    if (!active) { setDisplay(""); return; }
+    const s = stateRef.current;
+    let tid: ReturnType<typeof setTimeout>;
+
+    const tick = () => {
+      const full = `https://${examples[s.idx]}`;
+      if (s.phase === "typing") {
+        if (s.char < full.length) {
+          s.char++;
+          setDisplay(full.slice(0, s.char));
+          tid = setTimeout(tick, 42 + Math.random() * 30);
+        } else {
+          s.phase = "pause";
+          tid = setTimeout(tick, 1900);
+        }
+      } else if (s.phase === "pause") {
+        s.phase = "deleting";
+        tid = setTimeout(tick, 300);
+      } else {
+        if (s.char > 0) {
+          s.char--;
+          setDisplay(full.slice(0, s.char));
+          tid = setTimeout(tick, 16);
+        } else {
+          s.idx = (s.idx + 1) % examples.length;
+          s.phase = "typing";
+          tid = setTimeout(tick, 250);
+        }
+      }
+    };
+    tid = setTimeout(tick, 400);
+    return () => clearTimeout(tid);
+  }, [active, examples]);
+
+  return display;
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function GetDemoPage() {
   const [, navigate] = useLocation();
 
   // field state
   const [listingUrl, setListingUrl] = useState("");
+  const [listingFocused, setListingFocused] = useState(false);
   const [contact, setContact]       = useState("");
   const [name, setName]             = useState("");
 
@@ -255,6 +310,12 @@ export default function GetDemoPage() {
   const isListingValid = listingUrl.trim().length >= 5;
   const isContactValid = contact.trim().length >= 6;
   const isNameValid    = name.trim().length >= 2;
+
+  // Typewriter placeholder — active only when input is empty & unfocused
+  const typedPlaceholder = useTypewriter(
+    LISTING_EXAMPLES,
+    listingUrl === "" && !listingFocused && authStep === "listing",
+  );
 
   const fireSideCanons = () => {
     const fire = confettiRef.current?.fire;
@@ -366,6 +427,7 @@ export default function GetDemoPage() {
         input:autofill{background-color:transparent!important;background-clip:content-box!important;-webkit-text-fill-color:var(--foreground)!important;color:var(--foreground)!important}
         input:-internal-autofill-selected{background-color:transparent!important;background-image:none!important;color:var(--foreground)!important;-webkit-text-fill-color:var(--foreground)!important}
         input:-webkit-autofill::first-line{color:var(--foreground)!important;-webkit-text-fill-color:var(--foreground)!important}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
         @property --angle-1{syntax:"<angle>";inherits:false;initial-value:-75deg}
         @property --angle-2{syntax:"<angle>";inherits:false;initial-value:-45deg}
         .glass-button-wrap{--anim-time:400ms;--anim-ease:cubic-bezier(.25,1,.5,1);--border-width:clamp(1px,.0625em,4px);position:relative;z-index:2;transform-style:preserve-3d;transition:transform var(--anim-time) var(--anim-ease)}.glass-button-wrap:has(.glass-button:active){transform:rotateX(25deg)}.glass-button-shadow{--shadow-cutoff-fix:2em;position:absolute;width:calc(100% + var(--shadow-cutoff-fix));height:calc(100% + var(--shadow-cutoff-fix));top:calc(0% - var(--shadow-cutoff-fix)/2);left:calc(0% - var(--shadow-cutoff-fix)/2);filter:blur(clamp(2px,.125em,12px));transition:filter var(--anim-time) var(--anim-ease);pointer-events:none;z-index:0}.glass-button-shadow::after{content:"";position:absolute;inset:0;border-radius:9999px;background:linear-gradient(180deg,oklch(from var(--foreground) l c h/20%),oklch(from var(--foreground) l c h/10%));width:calc(100% - var(--shadow-cutoff-fix) - .25em);height:calc(100% - var(--shadow-cutoff-fix) - .25em);top:calc(var(--shadow-cutoff-fix) - .5em);left:calc(var(--shadow-cutoff-fix) - .875em);padding:.125em;box-sizing:border-box;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;transition:all var(--anim-time) var(--anim-ease);opacity:1}.glass-button{-webkit-tap-highlight-color:transparent;backdrop-filter:blur(clamp(1px,.125em,4px));transition:all var(--anim-time) var(--anim-ease);background:linear-gradient(-75deg,oklch(from var(--background) l c h/5%),oklch(from var(--background) l c h/20%),oklch(from var(--background) l c h/5%));box-shadow:inset 0 .125em .125em oklch(from var(--foreground) l c h/5%),inset 0 -.125em .125em oklch(from var(--background) l c h/50%),0 .25em .125em -.125em oklch(from var(--foreground) l c h/20%),0 0 .1em .25em inset oklch(from var(--background) l c h/20%),0 0 0 0 oklch(from var(--background) l c h)}.glass-button:hover{transform:scale(.975);backdrop-filter:blur(.01em);box-shadow:inset 0 .125em .125em oklch(from var(--foreground) l c h/5%),inset 0 -.125em .125em oklch(from var(--background) l c h/50%),0 .15em .05em -.1em oklch(from var(--foreground) l c h/25%),0 0 .05em .1em inset oklch(from var(--background) l c h/50%),0 0 0 0 oklch(from var(--background) l c h)}.glass-button-text{color:oklch(from var(--foreground) l c h/90%);text-shadow:0em .25em .05em oklch(from var(--foreground) l c h/10%);transition:all var(--anim-time) var(--anim-ease)}.glass-button:hover .glass-button-text{text-shadow:.025em .025em .025em oklch(from var(--foreground) l c h/12%)}.glass-button-text::after{content:"";display:block;position:absolute;width:calc(100% - var(--border-width));height:calc(100% - var(--border-width));top:calc(0% + var(--border-width)/2);left:calc(0% + var(--border-width)/2);box-sizing:border-box;border-radius:9999px;overflow:clip;background:linear-gradient(var(--angle-2),transparent 0%,oklch(from var(--background) l c h/50%) 40% 50%,transparent 55%);z-index:3;mix-blend-mode:screen;pointer-events:none;background-size:200% 200%;background-position:0% 50%;transition:background-position calc(var(--anim-time)*1.25) var(--anim-ease),--angle-2 calc(var(--anim-time)*1.25) var(--anim-ease)}.glass-button:hover .glass-button-text::after{background-position:25% 50%}.glass-button:active .glass-button-text::after{background-position:50% 15%;--angle-2:-15deg}.glass-button::after{content:"";position:absolute;z-index:1;inset:0;border-radius:9999px;width:calc(100% + var(--border-width));height:calc(100% + var(--border-width));top:calc(0% - var(--border-width)/2);left:calc(0% - var(--border-width)/2);padding:var(--border-width);box-sizing:border-box;background:conic-gradient(from var(--angle-1) at 50% 50%,oklch(from var(--foreground) l c h/50%) 0%,transparent 5% 40%,oklch(from var(--foreground) l c h/50%) 50%,transparent 60% 95%,oklch(from var(--foreground) l c h/50%) 100%),linear-gradient(180deg,oklch(from var(--background) l c h/50%),oklch(from var(--background) l c h/50%));mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;transition:all var(--anim-time) var(--anim-ease),--angle-1 500ms ease;box-shadow:inset 0 0 0 calc(var(--border-width)/2) oklch(from var(--background) l c h/50%);pointer-events:none}.glass-button:hover::after{--angle-1:-125deg}.glass-button:active::after{--angle-1:-75deg}.glass-button-wrap:has(.glass-button:hover) .glass-button-shadow{filter:blur(clamp(2px,.0625em,6px))}.glass-button-wrap:has(.glass-button:hover) .glass-button-shadow::after{top:calc(var(--shadow-cutoff-fix) - .875em);opacity:1}.glass-button-wrap:has(.glass-button:active) .glass-button-shadow{filter:blur(clamp(2px,.125em,12px))}.glass-button-wrap:has(.glass-button:active) .glass-button-shadow::after{top:calc(var(--shadow-cutoff-fix) - .5em);opacity:.75}.glass-button-wrap:has(.glass-button:active) .glass-button-text{text-shadow:.025em .25em .05em oklch(from var(--foreground) l c h/12%)}.glass-button-wrap:has(.glass-button:active) .glass-button{box-shadow:inset 0 .125em .125em oklch(from var(--foreground) l c h/5%),inset 0 -.125em .125em oklch(from var(--background) l c h/50%),0 .125em .125em -.125em oklch(from var(--foreground) l c h/20%),0 0 .1em .25em inset oklch(from var(--background) l c h/20%),0 .225em .05em 0 oklch(from var(--foreground) l c h/5%),0 .25em 0 0 oklch(from var(--background) l c h/75%),inset 0 .25em .05em 0 oklch(from var(--foreground) l c h/15%)}@media(hover:none) and (pointer:coarse){.glass-button::after,.glass-button:hover::after,.glass-button:active::after{--angle-1:-75deg}.glass-button .glass-button-text::after,.glass-button:active .glass-button-text::after{--angle-2:-45deg}}
@@ -392,6 +454,10 @@ export default function GetDemoPage() {
       {/* ── Main area — exact replica structure ── */}
       <div className={cn("flex w-full flex-1 h-full items-center justify-center", "relative overflow-hidden")} style={{ background: "#0d0117" }}>
         <div className="absolute inset-0 z-0"><GradientBackground /></div>
+        {/* Nebula shader — screen-blended on top of SVG gradient at low opacity */}
+        <div className="absolute inset-0 z-[1] pointer-events-none" style={{ opacity: 0.45, mixBlendMode: "screen" }}>
+          <InteractiveNebulaShader />
+        </div>
 
         <fieldset disabled={modalStatus !== "closed"}
           className="relative z-10 flex flex-col items-center gap-8 w-[280px] mx-auto p-4">
@@ -492,13 +558,29 @@ export default function GetDemoPage() {
                             <Link className="h-5 w-5 text-foreground/80 flex-shrink-0" />
                           </div>
                           <label htmlFor="demo-listing" className="sr-only">Property listing URL</label>
-                          <input id="demo-listing" type="url" placeholder="https://airbnb.com/rooms/…"
-                            value={listingUrl} onChange={(e) => setListingUrl(e.target.value)} onKeyDown={handleKeyDown}
-                            className={cn(
-                              "relative z-10 h-full w-0 flex-grow bg-transparent text-foreground placeholder:text-foreground/60 focus:outline-none transition-[padding-right] duration-300 ease-in-out delay-300",
-                              isListingValid && authStep === "listing" ? "pr-2" : "pr-0",
+                          {/* Animated typewriter overlay — only visible when empty & unfocused */}
+                          <div className="relative z-10 flex-grow min-w-0 flex items-center">
+                            {listingUrl === "" && !listingFocused && (
+                              <span
+                                aria-hidden="true"
+                                className="absolute inset-0 flex items-center pointer-events-none overflow-hidden whitespace-nowrap text-foreground/45 text-sm"
+                              >
+                                {typedPlaceholder}
+                                <span className="ml-px animate-[blink_1s_step-end_infinite] text-foreground/60">|</span>
+                              </span>
                             )}
-                          />
+                            <input id="demo-listing" type="url" placeholder=""
+                              value={listingUrl}
+                              onChange={(e) => setListingUrl(e.target.value)}
+                              onKeyDown={handleKeyDown}
+                              onFocus={() => setListingFocused(true)}
+                              onBlur={() => setListingFocused(false)}
+                              className={cn(
+                                "relative z-10 h-full w-full bg-transparent text-foreground focus:outline-none transition-[padding-right] duration-300 ease-in-out delay-300",
+                                isListingValid && authStep === "listing" ? "pr-2" : "pr-0",
+                              )}
+                            />
+                          </div>
                           <div className={cn(
                             "relative z-10 flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out",
                             isListingValid && authStep === "listing" ? "w-10 pr-1" : "w-0",
