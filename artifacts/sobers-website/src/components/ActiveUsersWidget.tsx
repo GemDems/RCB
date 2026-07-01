@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { NumberTicker } from "@/components/ui/NumberTicker";
 
 export function ActiveUsersWidget() {
-  const [value, setValue] = useState(48273);
+  const [value, setValue] = useState(1847);
 
   useEffect(() => {
     const id = setInterval(
-      () => setValue((v) => v + Math.floor(Math.random() * 50)),
+      () => setValue((v) => v + Math.floor(Math.random() * 3)),
       2500,
     );
     return () => clearInterval(id);
@@ -20,7 +20,7 @@ export function ActiveUsersWidget() {
         <div className="absolute inset-0 rounded-2xl bg-[radial-gradient(ellipse_60%_40%_at_50%_0%,rgba(167,139,250,0.12),transparent)] pointer-events-none" />
 
         <p className="relative text-xs font-semibold tracking-[0.2em] uppercase text-gray-400">
-          Active Users
+          Properties Toured This Month
         </p>
 
         <NumberTicker
@@ -33,16 +33,16 @@ export function ActiveUsersWidget() {
 
         <div className="relative flex items-center gap-2 text-xs text-gray-500">
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          live · updates every 2.5s
+          live · new tours going live daily
         </div>
       </div>
 
       {/* mini stat row */}
       <div className="flex gap-8 text-center">
         {[
-          { label: "Days counted", value: "2M+" },
-          { label: "App Store", value: "4.9★" },
-          { label: "Steps completed", value: "820K+" },
+          { label: "More Engagement", value: "40%" },
+          { label: "Faster Bookings", value: "31%" },
+          { label: "Avg. Client Rating", value: "4.9★" },
         ].map((s) => (
           <div key={s.label}>
             <div className="text-xl font-black text-white">{s.value}</div>

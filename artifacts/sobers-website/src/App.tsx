@@ -5,13 +5,13 @@ export default function App() {
   return (
     <div className="relative w-full bg-background text-foreground overflow-x-hidden font-sans dark">
       <HeroSection
-        title="Recovery Redefined"
+        title="Property Marketing Reimagined"
         subtitle={{
-          regular: "Stay accountable, stay connected, ",
-          gradient: "stay sober.",
+          regular: "Your property, ",
+          gradient: "sold before they visit.",
         }}
-        description="A private, elegant companion for your recovery journey — tracking your 12 steps, connecting you with your sponsor, and celebrating every single day."
-        ctaText="Download Free"
+        description="Hyper-realistic 3D walkthroughs and virtual tours that give buyers and guests the confidence to book — before ever stepping inside. Interactive digital twins, photorealistic renders, and marketing assets all from a single model."
+        ctaText="Book a Free Demo"
         ctaHref="#"
         gridOptions={{
           angle: 65,
