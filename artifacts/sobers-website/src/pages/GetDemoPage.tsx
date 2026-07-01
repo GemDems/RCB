@@ -5,9 +5,10 @@ import React, {
   useMemo, useCallback, createContext, Children,
 } from "react";
 import { InteractiveNebulaShader } from "@/components/ui/InteractiveNebulaShader";
+import ClassicLoader from "@/components/ui/loader";
 import { cva, type VariantProps } from "class-variance-authority";
 import {
-  ArrowRight, ArrowLeft, X, AlertCircle, PartyPopper, Loader,
+  ArrowRight, ArrowLeft, X, AlertCircle, PartyPopper,
   Link, Phone, User,
 } from "lucide-react";
 import {
@@ -222,15 +223,31 @@ const SiteLogo = () => (
 
 // ─── Modal steps (exact replica) ─────────────────────────────────────────────
 const modalSteps = [
-  { message: "Sending your request...",   icon: <Loader className="w-12 h-12 text-violet-400 animate-spin" /> },
-  { message: "Notifying our team...",     icon: <Loader className="w-12 h-12 text-violet-400 animate-spin" /> },
-  { message: "Finalising...",             icon: <Loader className="w-12 h-12 text-violet-400 animate-spin" /> },
+  { message: "Sending your request...",   icon: null },
+  { message: "Notifying our team...",     icon: null },
+  { message: "Finalising...",             icon: null },
   { message: "You're all booked in!",     icon: <PartyPopper className="w-12 h-12 text-emerald-400" /> },
 ];
 const TEXT_LOOP_INTERVAL = 1.5;
 
 // ─── API base (dev vs deployed) ───────────────────────────────────────────────
 const API_BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
+
+// ─── URL domain allowlist check ───────────────────────────────────────────────
+function isDomainAllowed(url: string, allowedDomains: string[]): boolean {
+  if (!url || url.trim().length < 5) return false;
+  if (allowedDomains.length === 0) return true; // permissive until list loads
+  try {
+    const normalized = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    const hostname = new URL(normalized).hostname.toLowerCase().replace(/^www\./, "");
+    return allowedDomains.some((d) => {
+      const domain = d.toLowerCase().replace(/^www\./, "");
+      return hostname === domain || hostname.endsWith(`.${domain}`);
+    });
+  } catch {
+    return false;
+  }
+}
 
 // ─── Animated typewriter placeholder ─────────────────────────────────────────
 const LISTING_EXAMPLES = [
@@ -306,10 +323,20 @@ export default function GetDemoPage() {
   const contactRef   = useRef<HTMLInputElement>(null);
   const nameRef      = useRef<HTMLInputElement>(null);
 
+  // allowed domains — fetched once on mount
+  const [allowedDomains, setAllowedDomains] = useState<string[]>([]);
+  useEffect(() => {
+    fetch(`${API_BASE}/api/allowed-domains`)
+      .then((r) => r.json())
+      .then((data: { domains: string[] }) => setAllowedDomains(data.domains))
+      .catch(() => {}); // silent — stays permissive if fetch fails
+  }, []);
+
   // validation
-  const isListingValid = listingUrl.trim().length >= 5;
-  const isContactValid = contact.trim().length >= 6;
-  const isNameValid    = name.trim().length >= 2;
+  const isDomainOk      = isDomainAllowed(listingUrl, allowedDomains);
+  const isListingValid  = listingUrl.trim().length >= 5 && isDomainOk;
+  const isContactValid  = contact.trim().length >= 6;
+  const isNameValid     = name.trim().length >= 2;
 
   // Typewriter placeholder — active only when input is empty & unfocused
   const typedPlaceholder = useTypewriter(
@@ -393,7 +420,7 @@ export default function GetDemoPage() {
               <TextLoop interval={TEXT_LOOP_INTERVAL} stopOnEnd>
                 {modalSteps.slice(0, -1).map((step, i) => (
                   <div key={i} className="flex flex-col items-center gap-4">
-                    {step.icon}
+                    <ClassicLoader />
                     <p className="text-lg font-medium text-foreground">{step.message}</p>
                   </div>
                 ))}
@@ -592,6 +619,21 @@ export default function GetDemoPage() {
                           </div>
                         </div>
                       </div>
+                      {/* Domain validation error */}
+                      <AnimatePresence>
+                        {listingUrl.trim().length >= 5 && !isDomainOk && (
+                          <motion.p
+                            key="domain-error"
+                            initial={{ opacity: 0, y: -4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -4 }}
+                            transition={{ duration: 0.2 }}
+                            className="mt-2 px-4 text-xs text-red-400"
+                          >
+                            Please paste a link from a property listing site (e.g. Airbnb, Zillow, Rightmove).
+                          </motion.p>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </BlurFade>
 

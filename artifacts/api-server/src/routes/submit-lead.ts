@@ -1,7 +1,21 @@
 import { Router } from "express";
 import { Resend } from "resend";
+import { ALLOWED_DOMAINS } from "../lib/allowed-domains-list";
 
 const router = Router();
+
+function isAllowedListingDomain(url: string): boolean {
+  try {
+    const normalized = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    const hostname = new URL(normalized).hostname.toLowerCase().replace(/^www\./, "");
+    return ALLOWED_DOMAINS.some((d) => {
+      const domain = d.toLowerCase().replace(/^www\./, "");
+      return hostname === domain || hostname.endsWith(`.${domain}`);
+    });
+  } catch {
+    return false;
+  }
+}
 
 router.post("/submit-lead", async (req, res) => {
   const { listingUrl, contact, name } = req.body as {
@@ -12,6 +26,10 @@ router.post("/submit-lead", async (req, res) => {
 
   if (!listingUrl || !contact || !name) {
     return res.status(400).json({ error: "Missing required fields." });
+  }
+
+  if (!isAllowedListingDomain(listingUrl)) {
+    return res.status(400).json({ error: "Listing URL must be from a recognised property listing site." });
   }
 
   const notifyEmail = process.env.NOTIFY_EMAIL;
