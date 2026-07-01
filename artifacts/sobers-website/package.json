@@ -76,6 +76,7 @@
   },
   "dependencies": {
     "gsap": "^3.15.0",
-    "motion": "^12.42.0"
+    "motion": "^12.42.0",
+    "react-textarea-autosize": "^8.5.9"
   }
 }
