@@ -29,8 +29,8 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "PORT=5173 BASE_PATH=/ pnpm --filter @workspace/sobers-website run dev"
-waitForPort = 5173
+args = "PORT=22804 BASE_PATH=/ pnpm --filter @workspace/sobers-website run dev"
+waitForPort = 22804
 
 [agent]
 stack = "PNPM_WORKSPACE"
