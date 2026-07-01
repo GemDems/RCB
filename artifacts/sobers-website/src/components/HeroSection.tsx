@@ -1,8 +1,8 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { ChevronRight } from "lucide-react"
 import { ActiveUsersWidget } from "@/components/ActiveUsersWidget"
 import { ShinyButton } from "@/components/ui/ShinyButton"
+import { LiquidButton } from "@/components/ui/button-1"
 
 interface HeroSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
@@ -73,14 +73,11 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
           <div className="max-w-screen-xl z-10 mx-auto px-4 py-28 gap-12 md:px-8">
             <div className="space-y-5 max-w-3xl mx-auto text-center">
 
-              {/* Badge — ShinyButton effect, small pill style */}
+              {/* Badge — animated liquid button */}
               <div className="flex justify-center">
-                <a href="#" className="shiny-cta !py-2 !px-5 !text-sm !font-medium group">
-                  <span className="flex items-center gap-1.5">
-                    {title}
-                    <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
-                  </span>
-                </a>
+                <LiquidButton href="#">
+                  {title}
+                </LiquidButton>
               </div>
 
               <h2 className="text-4xl tracking-tighter mx-auto md:text-6xl text-white font-black">
