@@ -83,7 +83,7 @@ function useFormDimensions() {
    Constants
 ───────────────────────────────────────────── */
 const SPEED = 1
-const MIN_THINK_MS = 5000
+const MIN_THINK_MS = 11000
 const ORB_TONES = { base: "oklch(22.64% 0 0)" }
 
 const COOKING_PHASES = [
