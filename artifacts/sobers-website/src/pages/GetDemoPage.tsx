@@ -138,7 +138,8 @@ const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>(
   ({ className, children, size, contentClassName, onClick, ...props }, ref) => {
     const handleWrapperClick = (e: React.MouseEvent<HTMLDivElement>) => {
       const button = e.currentTarget.querySelector("button");
-      if (button && e.target !== button) button.click();
+      // Only proxy when the click landed outside the button element itself
+      if (button && !button.contains(e.target as Node)) button.click();
     };
     return (
       <div className={cn("glass-button-wrap cursor-pointer rounded-full relative", className)} onClick={handleWrapperClick}>
@@ -152,40 +153,57 @@ const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>(
 );
 GlassButton.displayName = "GlassButton";
 
-// ─── GradientBackground (exact replica of original SVG) ──────────────────────
+// ─── GradientBackground — pure purple, conversion-maximised ──────────────────
 const GradientBackground = () => (
   <>
     <style>{`
-      @keyframes float1 { 0% { transform: translate(0, 0); } 50% { transform: translate(-10px, 10px); } 100% { transform: translate(0, 0); } }
-      @keyframes float2 { 0% { transform: translate(0, 0); } 50% { transform: translate(10px, -10px); } 100% { transform: translate(0, 0); } }
+      @keyframes float1 { 0% { transform: translate(0, 0); } 50% { transform: translate(-12px, 14px); } 100% { transform: translate(0, 0); } }
+      @keyframes float2 { 0% { transform: translate(0, 0); } 50% { transform: translate(14px, -12px); } 100% { transform: translate(0, 0); } }
+      @keyframes pulse-glow { 0%,100% { opacity: 0.55; } 50% { opacity: 0.75; } }
     `}</style>
     <svg width="100%" height="100%" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg"
       preserveAspectRatio="xMidYMid slice" className="absolute top-0 left-0 w-full h-full">
       <defs>
-        <linearGradient id="lg_grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style={{ stopColor: "#7c3aed", stopOpacity: 0.8 }} />
-          <stop offset="100%" style={{ stopColor: "#4f46e5", stopOpacity: 0.6 }} />
-        </linearGradient>
-        <linearGradient id="lg_grad2" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style={{ stopColor: "#6d28d9", stopOpacity: 0.9 }} />
-          <stop offset="50%" style={{ stopColor: "#4338ca", stopOpacity: 0.7 }} />
-          <stop offset="100%" style={{ stopColor: "#7c3aed", stopOpacity: 0.6 }} />
-        </linearGradient>
-        <radialGradient id="lg_grad3" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" style={{ stopColor: "#8b5cf6", stopOpacity: 0.8 }} />
-          <stop offset="100%" style={{ stopColor: "#6366f1", stopOpacity: 0.4 }} />
+        {/* pure violet/purple — no indigo */}
+        <radialGradient id="pg_center" cx="50%" cy="50%" r="55%">
+          <stop offset="0%"   stopColor="#7c3aed" stopOpacity="0.55" />
+          <stop offset="60%"  stopColor="#5b21b6" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="#0d0117"  stopOpacity="0" />
         </radialGradient>
-        <filter id="lg_blur1" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="35" /></filter>
-        <filter id="lg_blur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="25" /></filter>
-        <filter id="lg_blur3" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="45" /></filter>
+        <linearGradient id="pg_grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stopColor="#9333ea" stopOpacity="0.85" />
+          <stop offset="100%" stopColor="#6b21a8" stopOpacity="0.65" />
+        </linearGradient>
+        <linearGradient id="pg_grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stopColor="#7c3aed" stopOpacity="0.9" />
+          <stop offset="50%"  stopColor="#a855f7" stopOpacity="0.7" />
+          <stop offset="100%" stopColor="#6b21a8" stopOpacity="0.6" />
+        </linearGradient>
+        <radialGradient id="pg_grad3" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stopColor="#c084fc" stopOpacity="0.75" />
+          <stop offset="100%" stopColor="#7c3aed" stopOpacity="0.3" />
+        </radialGradient>
+        <filter id="pg_blur1" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="40" /></filter>
+        <filter id="pg_blur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="28" /></filter>
+        <filter id="pg_blur3" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="55" /></filter>
+        <filter id="pg_blur4" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="70" /></filter>
       </defs>
-      <g style={{ animation: "float1 20s ease-in-out infinite" }}>
-        <ellipse cx="200" cy="500" rx="250" ry="180" fill="url(#lg_grad1)" filter="url(#lg_blur1)" transform="rotate(-30 200 500)" />
-        <rect x="500" y="100" width="300" height="250" rx="80" fill="url(#lg_grad2)" filter="url(#lg_blur2)" transform="rotate(15 650 225)" />
+
+      {/* solid deep-purple base */}
+      <rect width="800" height="600" fill="#0d0117" />
+
+      {/* strong central form-focus glow — draws the eye to the CTA */}
+      <ellipse cx="400" cy="300" rx="360" ry="280" fill="url(#pg_center)" filter="url(#pg_blur4)"
+        style={{ animation: "pulse-glow 6s ease-in-out infinite" }} />
+
+      {/* floating ambient blobs — pure purple palette */}
+      <g style={{ animation: "float1 22s ease-in-out infinite" }}>
+        <ellipse cx="160" cy="520" rx="270" ry="200" fill="url(#pg_grad1)" filter="url(#pg_blur1)" transform="rotate(-25 160 520)" />
+        <rect x="530" y="80" width="310" height="260" rx="90" fill="url(#pg_grad2)" filter="url(#pg_blur2)" transform="rotate(18 685 210)" />
       </g>
-      <g style={{ animation: "float2 25s ease-in-out infinite" }}>
-        <circle cx="650" cy="450" r="150" fill="url(#lg_grad3)" filter="url(#lg_blur3)" opacity="0.7" />
-        <ellipse cx="50" cy="150" rx="180" ry="120" fill="#4f46e5" filter="url(#lg_blur2)" opacity="0.5" />
+      <g style={{ animation: "float2 28s ease-in-out infinite" }}>
+        <circle cx="670" cy="460" r="170" fill="url(#pg_grad3)" filter="url(#pg_blur3)" opacity="0.7" />
+        <ellipse cx="40" cy="140" rx="190" ry="130" fill="#6b21a8" filter="url(#pg_blur2)" opacity="0.55" />
       </g>
     </svg>
   </>
@@ -341,7 +359,7 @@ export default function GetDemoPage() {
 
   // ─── Render (exact structural replica) ───────────────────────────────────
   return (
-    <div className="dark bg-background min-h-screen w-screen flex flex-col">
+    <div className="dark min-h-screen w-screen flex flex-col" style={{ background: "#0d0117" }}>
       <style>{`
         input[type="password"]::-ms-reveal,input[type="password"]::-ms-clear{display:none!important}
         input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,input:-webkit-autofill:active{-webkit-box-shadow:0 0 0 30px transparent inset!important;-webkit-text-fill-color:var(--foreground)!important;background-color:transparent!important;background-clip:content-box!important;transition:background-color 5000s ease-in-out 0s!important;color:var(--foreground)!important;caret-color:var(--foreground)!important}
@@ -372,7 +390,7 @@ export default function GetDemoPage() {
       </div>
 
       {/* ── Main area — exact replica structure ── */}
-      <div className={cn("flex w-full flex-1 h-full items-center justify-center bg-card", "relative overflow-hidden")}>
+      <div className={cn("flex w-full flex-1 h-full items-center justify-center", "relative overflow-hidden")} style={{ background: "#0d0117" }}>
         <div className="absolute inset-0 z-0"><GradientBackground /></div>
 
         <fieldset disabled={modalStatus !== "closed"}
