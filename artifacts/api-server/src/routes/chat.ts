@@ -3,8 +3,15 @@ import { CohereClient } from "cohere-ai";
 
 const router: IRouter = Router();
 
+const cohereApiKey = process.env["COHERE_API_KEY"];
+if (!cohereApiKey) {
+  console.warn(
+    "Warning: COHERE_API_KEY is not set. /api/chat requests will fail at runtime.",
+  );
+}
+
 const cohere = new CohereClient({
-  token: process.env["COHERE_API_KEY"] ?? "",
+  token: cohereApiKey ?? "",
 });
 
 const SYSTEM_PROMPT = `You are the AI assistant for Sobers, a property marketing studio that does hyper-realistic 3D walkthroughs and virtual tours.
