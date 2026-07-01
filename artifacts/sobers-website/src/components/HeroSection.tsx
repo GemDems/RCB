@@ -6,6 +6,7 @@ import { ShinyButton } from "@/components/ui/ShinyButton"
 import { LiquidButton } from "@/components/ui/button-1"
 import { HeroSearchBar } from "@/components/ui/HeroSearchBar"
 import { CircularGallery } from "@/components/ui/circular-gallery"
+import { GlowCard } from "@/components/ui/spotlight-card"
 
 interface HeroSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
@@ -75,8 +76,15 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
       target: containerRef,
       offset: ["start start", "end start"],
     })
+
+    // Scroll-driven bg gradient fade
     const bgOpacity = useTransform(scrollYProgress, [0, 0.45], [1, 0])
-    const bgScale = useTransform(scrollYProgress, [0, 0.45], [1, 1.06])
+    const bgScale  = useTransform(scrollYProgress, [0, 0.45], [1, 1.06])
+
+    // Gallery: hidden at load → reveals smoothly on scroll (blur + fade + slide-up)
+    const galleryOpacity  = useTransform(scrollYProgress, [0, 0.28], [0, 1])
+    const galleryY        = useTransform(scrollYProgress, [0, 0.28], [60, 0])
+    const galleryFilter   = useTransform(scrollYProgress, [0, 0.28], ["blur(24px)", "blur(0px)"])
 
     return (
       <div className={cn("relative", className)} ref={(node) => {
@@ -84,14 +92,28 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
         if (typeof ref === "function") ref(node)
         else if (ref) ref.current = node
       }} {...props}>
-        {/* ── Circular Gallery — absolute background, behind everything ── */}
-        <div className="absolute inset-0 z-[0] pointer-events-none">
-          <CircularGallery bend={3} borderRadius={0.05} scrollEase={0.02} />
-        </div>
+
+        {/* ── Layer 0: Circular Gallery — scroll-revealed, GlowCard spotlight ── */}
+        <motion.div
+          style={{ opacity: galleryOpacity, y: galleryY, filter: galleryFilter }}
+          className="absolute inset-0 z-[0] pointer-events-none"
+        >
+          <GlowCard
+            customSize
+            glowColor="purple"
+            className="w-full h-full !rounded-none !shadow-none !backdrop-blur-none overflow-hidden"
+          >
+            <CircularGallery bend={3} borderRadius={0.05} scrollEase={0.02} />
+          </GlowCard>
+        </motion.div>
+
+        {/* ── Layer 1: Radial gradient overlay ── */}
         <motion.div
           style={{ opacity: bgOpacity, scale: bgScale }}
           className="absolute top-0 z-[1] h-screen w-screen bg-[radial-gradient(ellipse_20%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] pointer-events-none"
         />
+
+        {/* ── Layer 2: All hero content — fully above gallery & gradient ── */}
         <section className="relative max-w-full mx-auto z-[2]">
           <RetroGrid {...gridOptions} />
           <div className="max-w-screen-xl z-10 mx-auto px-4 pt-10 pb-14 md:pt-14 md:pb-28 gap-12 md:px-8">
