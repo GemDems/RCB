@@ -103,12 +103,14 @@ type InputMode = { search: boolean; think: boolean; canvas: boolean }
    Trusted logos shown above input until first message
 ───────────────────────────────────────────── */
 const CHAT_LOGOS = [
-  { src: "https://html.tailus.io/blocks/customers/nvidia.svg",       alt: "Nvidia",       height: 14 },
-  { src: "https://html.tailus.io/blocks/customers/github.svg",       alt: "GitHub",       height: 14 },
-  { src: "https://html.tailus.io/blocks/customers/nike.svg",         alt: "Nike",         height: 16 },
-  { src: "https://html.tailus.io/blocks/customers/laravel.svg",      alt: "Laravel",      height: 14 },
-  { src: "https://html.tailus.io/blocks/customers/openai.svg",       alt: "OpenAI",       height: 16 },
-  { src: "https://html.tailus.io/blocks/customers/lemonsqueezy.svg", alt: "LemonSqueezy", height: 16 },
+  { src: "https://html.tailus.io/blocks/customers/nvidia.svg",       alt: "Airbnb",        height: 11 },
+  { src: "https://html.tailus.io/blocks/customers/github.svg",       alt: "Rightmove",     height: 11 },
+  { src: "https://html.tailus.io/blocks/customers/nike.svg",         alt: "Booking.com",   height: 11 },
+  { src: "https://html.tailus.io/blocks/customers/laravel.svg",      alt: "Zoopla",        height: 11 },
+  { src: "https://html.tailus.io/blocks/customers/openai.svg",       alt: "Knight Frank",  height: 11 },
+  { src: "https://html.tailus.io/blocks/customers/lemonsqueezy.svg", alt: "Savills",       height: 11 },
+  { src: "https://html.tailus.io/blocks/customers/column.svg",       alt: "CBRE",          height: 11 },
+  { src: "https://html.tailus.io/blocks/customers/lilly.svg",        alt: "JLL",           height: 11 },
 ]
 
 function ChatTrustedLogos({ visible }: { visible: boolean }) {
@@ -117,41 +119,40 @@ function ChatTrustedLogos({ visible }: { visible: boolean }) {
       {visible && (
         <motion.div
           key="trusted-logos"
-          initial={{ opacity: 0, filter: "blur(8px)", y: 6 }}
+          initial={{ opacity: 0, filter: "blur(8px)", y: 4 }}
           animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-          exit={{ opacity: 0, filter: "blur(10px)", y: -4 }}
-          transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-          className="shrink-0 px-1 pb-1"
+          exit={{ opacity: 0, filter: "blur(10px)", y: -3 }}
+          transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
+          className="shrink-0 px-2 pt-1 pb-2 border-t border-border/40"
         >
-          <p className="text-[10px] text-muted-foreground text-center mb-2 tracking-wide uppercase font-medium">
-            Trusted by leading teams
+          <p className="text-[9px] text-muted-foreground/60 text-center mb-1.5 tracking-widest uppercase font-medium">
+            Trusted by
           </p>
           <AnimatedGroup
             variants={{
               container: {
                 visible: {
-                  transition: { staggerChildren: 0.07, delayChildren: 0.1 },
+                  transition: { staggerChildren: 0.05, delayChildren: 0.05 },
                 },
               },
               item: {
-                hidden: { opacity: 0, filter: "blur(6px)", y: 6 },
+                hidden: { opacity: 0, filter: "blur(4px)", y: 3 },
                 visible: {
                   opacity: 1,
                   filter: "blur(0px)",
                   y: 0,
-                  transition: { type: "spring", bounce: 0.3, duration: 1.2 },
+                  transition: { type: "spring", bounce: 0.2, duration: 0.9 },
                 },
               },
             }}
-            className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2"
+            className="flex items-center justify-between gap-x-2 overflow-hidden"
           >
             {CHAT_LOGOS.map((logo) => (
               <img
                 key={logo.alt}
                 src={logo.src}
                 alt={logo.alt}
-                height={logo.height}
-                className="h-auto opacity-50 dark:invert"
+                className="opacity-35 dark:invert flex-shrink-0 w-auto"
                 style={{ height: logo.height }}
               />
             ))}
