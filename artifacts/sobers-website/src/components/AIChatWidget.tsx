@@ -157,7 +157,15 @@ function ChatTrustedLogos({ visible }: { visible: boolean }) {
             className="grid grid-cols-4 gap-x-3 gap-y-4"
           >
             {CHAT_LOGOS.map((logo) => (
-              <div key={logo.alt} className="flex items-center justify-center h-10">
+              <div
+                key={logo.alt}
+                className={cn(
+                  "flex items-center justify-center",
+                  logo.alt === "Rightmove" || logo.alt === "Booking.com"
+                    ? "h-16"
+                    : "h-10"
+                )}
+              >
                 <img
                   src={logo.src}
                   alt={logo.alt}

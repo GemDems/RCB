@@ -5,6 +5,7 @@ import { ActiveUsersWidget } from "@/components/ActiveUsersWidget"
 import { ShinyButton } from "@/components/ui/ShinyButton"
 import { LiquidButton } from "@/components/ui/button-1"
 import { HeroSearchBar } from "@/components/ui/HeroSearchBar"
+import { CircularGallery } from "@/components/ui/circular-gallery"
 
 interface HeroSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
@@ -83,11 +84,15 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
         if (typeof ref === "function") ref(node)
         else if (ref) ref.current = node
       }} {...props}>
+        {/* ── Circular Gallery — absolute background, behind everything ── */}
+        <div className="absolute inset-0 z-[0] pointer-events-none">
+          <CircularGallery bend={3} borderRadius={0.05} scrollEase={0.02} />
+        </div>
         <motion.div
           style={{ opacity: bgOpacity, scale: bgScale }}
-          className="absolute top-0 z-[0] h-screen w-screen bg-[radial-gradient(ellipse_20%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] pointer-events-none"
+          className="absolute top-0 z-[1] h-screen w-screen bg-[radial-gradient(ellipse_20%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] pointer-events-none"
         />
-        <section className="relative max-w-full mx-auto z-1">
+        <section className="relative max-w-full mx-auto z-[2]">
           <RetroGrid {...gridOptions} />
           <div className="max-w-screen-xl z-10 mx-auto px-4 pt-10 pb-14 md:pt-14 md:pb-28 gap-12 md:px-8">
             <div className="space-y-5 max-w-3xl mx-auto text-center">
