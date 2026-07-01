@@ -1,51 +1,100 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
-export function LoadingBreadcrumb({ label = "Cooking up a response…" }: { label?: string }) {
+const LOADER_KEYFRAMES = `
+  @keyframes drawStroke {
+    0% { stroke-dashoffset: var(--path-length); animation-timing-function: ease-in-out; }
+    50% { stroke-dashoffset: 0; animation-timing-function: ease-in-out; }
+    100% { stroke-dashoffset: calc(var(--path-length) * -1); }
+  }
+  @keyframes textShimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+`;
+
+let stylesInjected = false;
+let cachedPathLength = 0;
+
+function CookingLoader({ size = 18 }: { size?: number }) {
   const pathRef = useRef<SVGPathElement>(null);
+  const [pathLength, setPathLength] = useState(cachedPathLength);
 
   useEffect(() => {
-    const path = pathRef.current;
-    if (!path) return;
-    const len = path.getTotalLength();
-    path.style.strokeDasharray = `${len}`;
-    path.style.strokeDashoffset = `${len}`;
-
-    let start: number | null = null;
-    const duration = 1600;
-    let raf: number;
-
-    function animate(ts: number) {
-      if (!start) start = ts;
-      const progress = ((ts - start) % (duration * 2)) / duration;
-      const phase = progress < 1 ? progress : 2 - progress;
-      if (path) path.style.strokeDashoffset = `${len * (1 - phase)}`;
-      raf = requestAnimationFrame(animate);
+    if (!stylesInjected) {
+      stylesInjected = true;
+      const style = document.createElement("style");
+      style.innerHTML = LOADER_KEYFRAMES;
+      document.head.appendChild(style);
     }
-
-    raf = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(raf);
+    if (!cachedPathLength && pathRef.current) {
+      cachedPathLength = pathRef.current.getTotalLength();
+      setPathLength(cachedPathLength);
+    }
   }, []);
 
+  const ready = pathLength > 0;
+
   return (
-    <div className="flex items-center gap-2 select-none">
-      <svg width="28" height="16" viewBox="0 0 28 16" fill="none" className="flex-shrink-0">
-        <path
-          ref={pathRef}
-          d="M2 8 C5 2, 9 14, 14 8 C19 2, 23 14, 26 8"
-          stroke="url(#grad)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          fill="none"
-        />
-        <defs>
-          <linearGradient id="grad" x1="0" y1="0" x2="28" y2="0" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#a78bfa" />
-            <stop offset="100%" stopColor="#38bdf8" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <span className="text-[11px] text-white/40 font-medium tracking-wide animate-pulse">
-        {label}
+    <svg
+      viewBox="0 0 19 19"
+      fill="none"
+      width={size}
+      height={size}
+      className="text-purple-400 shrink-0"
+    >
+      <path
+        ref={pathRef}
+        d="M4.43431 2.42415C-0.789139 6.90104 1.21472 15.2022 8.434 15.9242C15.5762 16.6384 18.8649 9.23035 15.9332 4.5183C14.1316 1.62255 8.43695 0.0528911 7.51841 3.33733C6.48107 7.04659 15.2699 15.0195 17.4343 16.9241"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        style={
+          ready
+            ? ({
+                strokeDasharray: pathLength,
+                "--path-length": pathLength,
+              } as React.CSSProperties)
+            : undefined
+        }
+        className={cn(
+          "transition-opacity duration-300",
+          ready
+            ? "opacity-100 animate-[drawStroke_2.5s_infinite]"
+            : "opacity-0",
+        )}
+      />
+    </svg>
+  );
+}
+
+interface LoadingBreadcrumbProps {
+  text?: string;
+  className?: string;
+}
+
+export function LoadingBreadcrumb({
+  text = "Cooking",
+  className,
+}: LoadingBreadcrumbProps) {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-2 text-[13px] font-medium tracking-wide select-none",
+        className,
+      )}
+    >
+      <CookingLoader size={16} />
+      <span
+        className="bg-clip-text text-transparent"
+        style={{
+          backgroundImage:
+            "linear-gradient(90deg, rgb(161,161,170) 0%, rgb(161,161,170) 35%, rgb(255,255,255) 50%, rgb(161,161,170) 65%, rgb(161,161,170) 100%)",
+          backgroundSize: "200% auto",
+          animation: "textShimmer 2s ease-in-out infinite",
+        }}
+      >
+        {text}
       </span>
     </div>
   );
