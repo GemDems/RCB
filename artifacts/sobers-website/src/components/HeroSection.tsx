@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils"
 import { ActiveUsersWidget } from "@/components/ActiveUsersWidget"
 import { ShinyButton } from "@/components/ui/ShinyButton"
 import { LiquidButton } from "@/components/ui/button-1"
-import { HeroInlineChat } from "@/components/HeroInlineChat"
 
 interface HeroSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
@@ -113,8 +112,6 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
                   {ctaText}
                 </ShinyButton>
               </div>
-
-              <HeroInlineChat />
             </div>
 
             <ActiveUsersWidget />
