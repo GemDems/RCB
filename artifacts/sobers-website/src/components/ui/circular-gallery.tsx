@@ -242,7 +242,14 @@ class Media {
     this.speed = scroll.current - scroll.last;
     this.program.uniforms.uTime.value += 0.04;
     this.program.uniforms.uSpeed.value = this.speed;
-    this.program.uniforms.uMouse.value = [this.mouseX, this.mouseY];
+    // Project canvas-relative mouse (0–1) into this plane's UV space
+    const ndcMouseX = this.mouseX * 2 - 1;
+    const ndcMouseY = -(this.mouseY * 2 - 1);
+    const planeCenterNdcX = this.plane.position.x / (this.viewport.width / 2);
+    const planeCenterNdcY = this.plane.position.y / (this.viewport.height / 2);
+    const uvX = (ndcMouseX - planeCenterNdcX) * this.viewport.width / (2 * this.plane.scale.x) + 0.5;
+    const uvY = (ndcMouseY - planeCenterNdcY) * this.viewport.height / (2 * this.plane.scale.y) + 0.5;
+    this.program.uniforms.uMouse.value = [uvX, uvY];
     const planeOffset = this.plane.scale.x / 2;
     const viewportOffset = this.viewport.width / 2;
     this.isBefore = this.plane.position.x + planeOffset < -viewportOffset;
@@ -286,6 +293,7 @@ class App {
   boundOnTouchMove!: (e: MouseEvent | TouchEvent) => void;
   boundOnTouchUp!: () => void;
   boundOnMouseMove!: (e: MouseEvent) => void;
+  boundOnMouseLeave!: () => void;
 
   constructor(container: HTMLElement, { items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase }: {
     items?: GalleryItem[]; bend: number; textColor: string;
@@ -334,6 +342,17 @@ class App {
       scene: this.scene, screen: this.screen, text: data.text,
       viewport: this.viewport, bend, textColor, borderRadius, font,
     }));
+  }
+
+  onGlowMouseMove(e: MouseEvent) {
+    const rect = this.container.getBoundingClientRect();
+    this.mouseX = (e.clientX - rect.left) / rect.width;
+    this.mouseY = (e.clientY - rect.top) / rect.height;
+  }
+
+  onMouseLeave() {
+    this.mouseX = -10;
+    this.mouseY = -10;
   }
 
   onTouchDown(e: MouseEvent | TouchEvent) {
@@ -395,6 +414,8 @@ class App {
     this.boundOnTouchDown = this.onTouchDown;
     this.boundOnTouchMove = this.onTouchMove;
     this.boundOnTouchUp = this.onTouchUp;
+    this.boundOnMouseMove = this.onGlowMouseMove;
+    this.boundOnMouseLeave = this.onMouseLeave;
     window.addEventListener("resize", this.boundOnResize);
     window.addEventListener("mousewheel", this.boundOnWheel as any);
     window.addEventListener("wheel", this.boundOnWheel);
@@ -404,6 +425,8 @@ class App {
     this.container.addEventListener("touchstart", this.boundOnTouchDown);
     window.addEventListener("touchmove", this.boundOnTouchMove);
     window.addEventListener("touchend", this.boundOnTouchUp);
+    this.container.addEventListener("mousemove", this.boundOnMouseMove);
+    this.container.addEventListener("mouseleave", this.boundOnMouseLeave);
   }
 
   destroy() {
@@ -417,6 +440,8 @@ class App {
     this.container.removeEventListener("touchstart", this.boundOnTouchDown);
     window.removeEventListener("touchmove", this.boundOnTouchMove);
     window.removeEventListener("touchend", this.boundOnTouchUp);
+    this.container.removeEventListener("mousemove", this.boundOnMouseMove);
+    this.container.removeEventListener("mouseleave", this.boundOnMouseLeave);
     if (this.renderer?.gl?.canvas?.parentNode) {
       this.renderer.gl.canvas.parentNode.removeChild(this.renderer.gl.canvas);
     }
