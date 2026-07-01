@@ -111,14 +111,14 @@ type InputMode = { search: boolean; think: boolean; canvas: boolean }
    Trusted logos shown above input until first message
 ───────────────────────────────────────────── */
 const CHAT_LOGOS = [
-  { src: logoAirbnb,      alt: "Airbnb",       large: false },
-  { src: logoRightmove,   alt: "Rightmove",    large: true  },
-  { src: logoBooking,     alt: "Booking.com",  large: true  },
-  { src: logoZoopla,      alt: "Zoopla",       large: false },
-  { src: logoKnightFrank, alt: "Knight Frank", large: false },
-  { src: logoSavills,     alt: "Savills",      large: false },
-  { src: logoCBRE,        alt: "CBRE",         large: false },
-  { src: logoJLL,         alt: "JLL",          large: false },
+  { src: logoAirbnb,      alt: "Airbnb"       },
+  { src: logoRightmove,   alt: "Rightmove"    },
+  { src: logoBooking,     alt: "Booking.com"  },
+  { src: logoZoopla,      alt: "Zoopla"       },
+  { src: logoKnightFrank, alt: "Knight Frank" },
+  { src: logoSavills,     alt: "Savills"      },
+  { src: logoCBRE,        alt: "CBRE"         },
+  { src: logoJLL,         alt: "JLL"          },
 ]
 
 const chatLogoTransitionVariants = {
@@ -157,10 +157,7 @@ function ChatTrustedLogos({ visible }: { visible: boolean }) {
             className="grid grid-cols-4 gap-x-3 gap-y-4"
           >
             {CHAT_LOGOS.map((logo) => (
-              <div
-                key={logo.alt}
-                className={`flex items-center justify-center ${logo.large ? "h-[200px]" : "h-10"}`}
-              >
+              <div key={logo.alt} className="flex items-center justify-center h-10">
                 <img
                   src={logo.src}
                   alt={logo.alt}
