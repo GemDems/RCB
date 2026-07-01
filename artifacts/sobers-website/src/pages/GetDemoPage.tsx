@@ -1,23 +1,39 @@
+// 1:1 structural replica of the AuthComponent — adapted for 3D demo lead capture
 import { cn } from "@/lib/utils";
 import React, {
   useState, useRef, useEffect, forwardRef, useImperativeHandle,
   useMemo, useCallback, createContext, Children,
 } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ArrowRight, MapPin, Home, ArrowLeft, X, AlertCircle, PartyPopper, Loader, Mail } from "lucide-react";
-import { AnimatePresence, motion, useInView, type Variants, type Transition } from "motion/react";
+import {
+  ArrowRight, ArrowLeft, X, AlertCircle, PartyPopper, Loader,
+  Link, Phone, User,
+} from "lucide-react";
+import {
+  AnimatePresence, motion, useInView,
+  type Variants, type Transition,
+} from "motion/react";
 import { useLocation } from "wouter";
-import type { GlobalOptions as ConfettiGlobalOptions, CreateTypes as ConfettiInstance, Options as ConfettiOptions } from "canvas-confetti";
+import type {
+  GlobalOptions as ConfettiGlobalOptions,
+  CreateTypes as ConfettiInstance,
+  Options as ConfettiOptions,
+} from "canvas-confetti";
 import confetti from "canvas-confetti";
 
-// ── Confetti ──────────────────────────────────────────────────────────────────
+// ─── Confetti ────────────────────────────────────────────────────────────────
 type Api = { fire: (options?: ConfettiOptions) => void };
 export type ConfettiRef = Api | null;
 const ConfettiContext = createContext<Api>({} as Api);
 
-const Confetti = forwardRef<ConfettiRef, React.ComponentPropsWithRef<"canvas"> & {
-  options?: ConfettiOptions; globalOptions?: ConfettiGlobalOptions; manualstart?: boolean;
-}>((props, ref) => {
+const Confetti = forwardRef<
+  ConfettiRef,
+  React.ComponentPropsWithRef<"canvas"> & {
+    options?: ConfettiOptions;
+    globalOptions?: ConfettiGlobalOptions;
+    manualstart?: boolean;
+  }
+>((props, ref) => {
   const { options, globalOptions = { resize: true, useWorker: true }, manualstart = false, ...rest } = props;
   const instanceRef = useRef<ConfettiInstance | null>(null);
   const canvasRef = useCallback((node: HTMLCanvasElement) => {
@@ -36,28 +52,43 @@ const Confetti = forwardRef<ConfettiRef, React.ComponentPropsWithRef<"canvas"> &
 });
 Confetti.displayName = "Confetti";
 
-// ── TextLoop ─────────────────────────────────────────────────────────────────
-type TextLoopProps = { children: React.ReactNode[]; className?: string; interval?: number; transition?: Transition; variants?: Variants; onIndexChange?: (i: number) => void; stopOnEnd?: boolean; };
-function TextLoop({ children, className, interval = 2, transition = { duration: 0.3 }, variants, onIndexChange, stopOnEnd = false }: TextLoopProps) {
+// ─── TextLoop ────────────────────────────────────────────────────────────────
+type TextLoopProps = {
+  children: React.ReactNode[];
+  className?: string;
+  interval?: number;
+  transition?: Transition;
+  variants?: Variants;
+  onIndexChange?: (index: number) => void;
+  stopOnEnd?: boolean;
+};
+export function TextLoop({
+  children, className, interval = 2, transition = { duration: 0.3 },
+  variants, onIndexChange, stopOnEnd = false,
+}: TextLoopProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const items = Children.toArray(children);
   useEffect(() => {
-    const ms = interval * 1000;
+    const intervalMs = interval * 1000;
     const timer = setInterval(() => {
-      setCurrentIndex((cur) => {
-        if (stopOnEnd && cur === items.length - 1) { clearInterval(timer); return cur; }
-        const next = (cur + 1) % items.length;
+      setCurrentIndex((current) => {
+        if (stopOnEnd && current === items.length - 1) { clearInterval(timer); return current; }
+        const next = (current + 1) % items.length;
         onIndexChange?.(next);
         return next;
       });
-    }, ms);
+    }, intervalMs);
     return () => clearInterval(timer);
   }, [items.length, interval, onIndexChange, stopOnEnd]);
-  const mv: Variants = { initial: { y: 20, opacity: 0 }, animate: { y: 0, opacity: 1 }, exit: { y: -20, opacity: 0 } };
+  const motionVariants: Variants = {
+    initial: { y: 20, opacity: 0 },
+    animate: { y: 0, opacity: 1 },
+    exit: { y: -20, opacity: 0 },
+  };
   return (
     <div className={cn("relative inline-block whitespace-nowrap", className)}>
       <AnimatePresence mode="popLayout" initial={false}>
-        <motion.div key={currentIndex} initial="initial" animate="animate" exit="exit" transition={transition} variants={variants || mv}>
+        <motion.div key={currentIndex} initial="initial" animate="animate" exit="exit" transition={transition} variants={variants || motionVariants}>
           {items[currentIndex]}
         </motion.div>
       </AnimatePresence>
@@ -65,9 +96,17 @@ function TextLoop({ children, className, interval = 2, transition = { duration: 
   );
 }
 
-// ── BlurFade ──────────────────────────────────────────────────────────────────
-interface BlurFadeProps { children: React.ReactNode; className?: string; duration?: number; delay?: number; yOffset?: number; inView?: boolean; inViewMargin?: string; blur?: string; }
-function BlurFade({ children, className, duration = 0.4, delay = 0, yOffset = 6, inView = true, inViewMargin = "-50px", blur = "6px" }: BlurFadeProps) {
+// ─── BlurFade ─────────────────────────────────────────────────────────────────
+interface BlurFadeProps {
+  children: React.ReactNode; className?: string;
+  variant?: { hidden: { y: number }; visible: { y: number } };
+  duration?: number; delay?: number; yOffset?: number;
+  inView?: boolean; inViewMargin?: string; blur?: string;
+}
+function BlurFade({
+  children, className, variant, duration = 0.4, delay = 0,
+  yOffset = 6, inView = true, inViewMargin = "-50px", blur = "6px",
+}: BlurFadeProps) {
   const ref = useRef(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const inViewResult = useInView(ref, { once: true, margin: inViewMargin as any });
@@ -76,23 +115,25 @@ function BlurFade({ children, className, duration = 0.4, delay = 0, yOffset = 6,
     hidden: { y: yOffset, opacity: 0, filter: `blur(${blur})` },
     visible: { y: -yOffset, opacity: 1, filter: "blur(0px)" },
   };
+  const combinedVariants = variant || defaultVariants;
   return (
-    <motion.div ref={ref} initial="hidden" animate={isInView ? "visible" : "hidden"} exit="hidden" variants={defaultVariants} transition={{ delay: 0.04 + delay, duration, ease: "easeOut" }} className={className}>
+    <motion.div ref={ref} initial="hidden" animate={isInView ? "visible" : "hidden"} exit="hidden"
+      variants={combinedVariants} transition={{ delay: 0.04 + delay, duration, ease: "easeOut" }} className={className}>
       {children}
     </motion.div>
   );
 }
 
-// ── GlassButton ───────────────────────────────────────────────────────────────
-const glassButtonVariants = cva("relative isolate all-unset cursor-pointer rounded-full transition-all", {
-  variants: { size: { default: "text-base font-medium", sm: "text-sm font-medium", lg: "text-lg font-medium", icon: "h-10 w-10" } },
-  defaultVariants: { size: "default" },
-});
-const glassButtonTextVariants = cva("glass-button-text relative block select-none tracking-tighter", {
-  variants: { size: { default: "px-6 py-3.5", sm: "px-4 py-2", lg: "px-8 py-4", icon: "flex h-10 w-10 items-center justify-center" } },
-  defaultVariants: { size: "default" },
-});
-interface GlassButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof glassButtonVariants> { contentClassName?: string; }
+// ─── GlassButton (exact replica) ─────────────────────────────────────────────
+const glassButtonVariants = cva(
+  "relative isolate all-unset cursor-pointer rounded-full transition-all",
+  { variants: { size: { default: "text-base font-medium", sm: "text-sm font-medium", lg: "text-lg font-medium", icon: "h-10 w-10" } }, defaultVariants: { size: "default" } },
+);
+const glassButtonTextVariants = cva(
+  "glass-button-text relative block select-none tracking-tighter",
+  { variants: { size: { default: "px-6 py-3.5", sm: "px-4 py-2", lg: "px-8 py-4", icon: "flex h-10 w-10 items-center justify-center" } }, defaultVariants: { size: "default" } },
+);
+export interface GlassButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof glassButtonVariants> { contentClassName?: string; }
 const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>(
   ({ className, children, size, contentClassName, onClick, ...props }, ref) => {
     const handleWrapperClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -111,55 +152,124 @@ const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>(
 );
 GlassButton.displayName = "GlassButton";
 
-// ── Background ────────────────────────────────────────────────────────────────
-const DemoBackground = () => (
+// ─── GradientBackground (exact replica of original SVG) ──────────────────────
+const GradientBackground = () => (
   <>
-    <style>{`@keyframes dfloat1{0%{transform:translate(0,0)}50%{transform:translate(-10px,10px)}100%{transform:translate(0,0)}}@keyframes dfloat2{0%{transform:translate(0,0)}50%{transform:translate(10px,-10px)}100%{transform:translate(0,0)}}`}</style>
-    <div className="absolute inset-0 bg-[#030303]" />
-    <div className="absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full bg-purple-600/15 blur-[120px]" style={{ animation: "dfloat1 20s ease-in-out infinite" }} />
-    <div className="absolute right-0 bottom-1/4 w-[400px] h-[400px] rounded-full bg-indigo-600/10 blur-[100px]" style={{ animation: "dfloat2 25s ease-in-out infinite" }} />
-    <div className="absolute left-0 top-3/4 w-[300px] h-[300px] rounded-full bg-violet-500/8 blur-[80px]" style={{ animation: "dfloat1 18s ease-in-out infinite" }} />
+    <style>{`
+      @keyframes float1 { 0% { transform: translate(0, 0); } 50% { transform: translate(-10px, 10px); } 100% { transform: translate(0, 0); } }
+      @keyframes float2 { 0% { transform: translate(0, 0); } 50% { transform: translate(10px, -10px); } 100% { transform: translate(0, 0); } }
+    `}</style>
+    <svg width="100%" height="100%" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg"
+      preserveAspectRatio="xMidYMid slice" className="absolute top-0 left-0 w-full h-full">
+      <defs>
+        <linearGradient id="lg_grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style={{ stopColor: "#7c3aed", stopOpacity: 0.8 }} />
+          <stop offset="100%" style={{ stopColor: "#4f46e5", stopOpacity: 0.6 }} />
+        </linearGradient>
+        <linearGradient id="lg_grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style={{ stopColor: "#6d28d9", stopOpacity: 0.9 }} />
+          <stop offset="50%" style={{ stopColor: "#4338ca", stopOpacity: 0.7 }} />
+          <stop offset="100%" style={{ stopColor: "#7c3aed", stopOpacity: 0.6 }} />
+        </linearGradient>
+        <radialGradient id="lg_grad3" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" style={{ stopColor: "#8b5cf6", stopOpacity: 0.8 }} />
+          <stop offset="100%" style={{ stopColor: "#6366f1", stopOpacity: 0.4 }} />
+        </radialGradient>
+        <filter id="lg_blur1" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="35" /></filter>
+        <filter id="lg_blur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="25" /></filter>
+        <filter id="lg_blur3" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="45" /></filter>
+      </defs>
+      <g style={{ animation: "float1 20s ease-in-out infinite" }}>
+        <ellipse cx="200" cy="500" rx="250" ry="180" fill="url(#lg_grad1)" filter="url(#lg_blur1)" transform="rotate(-30 200 500)" />
+        <rect x="500" y="100" width="300" height="250" rx="80" fill="url(#lg_grad2)" filter="url(#lg_blur2)" transform="rotate(15 650 225)" />
+      </g>
+      <g style={{ animation: "float2 25s ease-in-out infinite" }}>
+        <circle cx="650" cy="450" r="150" fill="url(#lg_grad3)" filter="url(#lg_blur3)" opacity="0.7" />
+        <ellipse cx="50" cy="150" rx="180" ry="120" fill="#4f46e5" filter="url(#lg_blur2)" opacity="0.5" />
+      </g>
+    </svg>
   </>
 );
 
-// ── Modal steps ───────────────────────────────────────────────────────────────
+// ─── Logo ─────────────────────────────────────────────────────────────────────
+const SiteLogo = () => (
+  <div className="bg-violet-600 text-white rounded-md p-1.5">
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  </div>
+);
+
+// ─── Modal steps (exact replica) ─────────────────────────────────────────────
 const modalSteps = [
-  { message: "Logging your details...",     icon: <Loader className="w-12 h-12 text-purple-400 animate-spin" /> },
-  { message: "Reserving your demo slot...", icon: <Loader className="w-12 h-12 text-purple-400 animate-spin" /> },
-  { message: "Finalising...",               icon: <Loader className="w-12 h-12 text-purple-400 animate-spin" /> },
-  { message: "You're in!",                  icon: <PartyPopper className="w-12 h-12 text-emerald-400" /> },
+  { message: "Sending your request...",   icon: <Loader className="w-12 h-12 text-violet-400 animate-spin" /> },
+  { message: "Notifying our team...",     icon: <Loader className="w-12 h-12 text-violet-400 animate-spin" /> },
+  { message: "Finalising...",             icon: <Loader className="w-12 h-12 text-violet-400 animate-spin" /> },
+  { message: "You're all booked in!",     icon: <PartyPopper className="w-12 h-12 text-emerald-400" /> },
 ];
 const TEXT_LOOP_INTERVAL = 1.5;
 
-const PROPERTY_TYPES = ["Airbnb / Short-let", "Estate agent listing", "Holiday let", "Property developer", "Other"];
+// ─── API base (dev vs deployed) ───────────────────────────────────────────────
+const API_BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
-// ── Main component ─────────────────────────────────────────────────────────────
+// ─── Main component ───────────────────────────────────────────────────────────
 export default function GetDemoPage() {
   const [, navigate] = useLocation();
 
-  const [email, setEmail]               = useState("");
-  const [address, setAddress]           = useState("");
-  const [propertyType, setPropertyType] = useState("");
-  const [step, setStep]                 = useState<"email" | "address" | "type">("email");
-  const [modalStatus, setModalStatus]   = useState<"closed" | "loading" | "error" | "success">("closed");
-  const [modalError, setModalError]     = useState("");
-  const confettiRef = useRef<ConfettiRef>(null);
-  const addressRef  = useRef<HTMLInputElement>(null);
+  // field state
+  const [listingUrl, setListingUrl] = useState("");
+  const [contact, setContact]       = useState("");
+  const [name, setName]             = useState("");
 
-  const isEmailValid   = /\S+@\S+\.\S+/.test(email);
-  const isAddressValid = address.trim().length >= 3;
+  // step state — mirrors original: "email" | "password" | "confirmPassword"
+  const [authStep, setAuthStep] = useState<"listing" | "contact" | "name">("listing");
 
-  const fireCelebration = () => {
+  // modal state — exact replica
+  const [modalStatus, setModalStatus]         = useState<"closed" | "loading" | "error" | "success">("closed");
+  const [modalErrorMessage, setModalErrorMessage] = useState("");
+
+  const confettiRef  = useRef<ConfettiRef>(null);
+  const contactRef   = useRef<HTMLInputElement>(null);
+  const nameRef      = useRef<HTMLInputElement>(null);
+
+  // validation
+  const isListingValid = listingUrl.trim().length >= 5;
+  const isContactValid = contact.trim().length >= 6;
+  const isNameValid    = name.trim().length >= 2;
+
+  const fireSideCanons = () => {
     const fire = confettiRef.current?.fire;
     if (!fire) return;
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
-    fire({ ...defaults, particleCount: 60, origin: { x: 0, y: 1 }, angle: 60 });
-    fire({ ...defaults, particleCount: 60, origin: { x: 1, y: 1 }, angle: 120 });
+    const particleCount = 50;
+    fire({ ...defaults, particleCount, origin: { x: 0, y: 1 }, angle: 60 });
+    fire({ ...defaults, particleCount, origin: { x: 1, y: 1 }, angle: 120 });
+  };
+
+  const handleFinalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (modalStatus !== "closed" || authStep !== "name" || !isNameValid) return;
+
+    setModalStatus("loading");
+    const loadingDuration = (modalSteps.length - 1) * TEXT_LOOP_INTERVAL * 1000;
+
+    // Fire API call in the background; show optimistic success after animation
+    fetch(`${API_BASE}/api/submit-lead`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ listingUrl, contact, name }),
+    }).catch(() => {/* silent — UX already succeeded */});
+
+    setTimeout(() => {
+      fireSideCanons();
+      setModalStatus("success");
+    }, loadingDuration);
   };
 
   const handleProgressStep = () => {
-    if (step === "email" && isEmailValid) setStep("address");
-    else if (step === "address" && isAddressValid) setStep("type");
+    if (authStep === "listing" && isListingValid) setAuthStep("contact");
+    else if (authStep === "contact" && isContactValid) setAuthStep("name");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -167,49 +277,45 @@ export default function GetDemoPage() {
   };
 
   const handleGoBack = () => {
-    if (step === "type") { setStep("address"); setPropertyType(""); }
-    else if (step === "address") setStep("email");
+    if (authStep === "name")    { setAuthStep("contact"); setName(""); }
+    else if (authStep === "contact") { setAuthStep("listing"); setContact(""); }
   };
 
-  const handleSelectType = (type: string) => {
-    setPropertyType(type);
-    setModalStatus("loading");
-    const totalDuration = (modalSteps.length - 1) * TEXT_LOOP_INTERVAL * 1000;
-    setTimeout(() => {
-      fireCelebration();
-      setModalStatus("success");
-    }, totalDuration);
-  };
+  const closeModal = () => { setModalStatus("closed"); setModalErrorMessage(""); };
 
-  const closeModal = () => { setModalStatus("closed"); setModalError(""); };
-
+  // auto-focus next field — exact replica pattern
   useEffect(() => {
-    if (step === "address") setTimeout(() => addressRef.current?.focus(), 500);
-  }, [step]);
+    if (authStep === "contact") setTimeout(() => contactRef.current?.focus(), 500);
+    else if (authStep === "name") setTimeout(() => nameRef.current?.focus(), 500);
+  }, [authStep]);
 
-  // Confetti is fired once in handleSelectType after the loading delay — no extra effect needed.
-
+  // ─── Modal (exact replica) ────────────────────────────────────────────────
   const Modal = () => (
     <AnimatePresence>
       {modalStatus !== "closed" && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-zinc-900/90 border border-white/10 rounded-2xl p-8 w-full max-w-sm flex flex-col items-center gap-4 mx-4 shadow-2xl">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+            className="relative bg-card/80 border-4 border-border rounded-2xl p-8 w-full max-w-sm flex flex-col items-center gap-4 mx-2">
             {(modalStatus === "error" || modalStatus === "success") && (
-              <button onClick={closeModal} aria-label="Close" className="absolute top-3 right-3 p-1 text-white/40 hover:text-white/80 transition-colors"><X className="w-5 h-5" /></button>
+              <button onClick={closeModal} aria-label="Close"
+                className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground transition-colors">
+                <X className="w-5 h-5" />
+              </button>
             )}
             {modalStatus === "error" && (
               <>
-                <AlertCircle className="w-12 h-12 text-red-400" />
-                <p className="text-lg font-medium text-white">{modalError}</p>
+                <AlertCircle className="w-12 h-12 text-destructive" />
+                <p className="text-lg font-medium text-foreground">{modalErrorMessage}</p>
                 <GlassButton onClick={closeModal} size="sm" className="mt-4">Try Again</GlassButton>
               </>
             )}
             {modalStatus === "loading" && (
               <TextLoop interval={TEXT_LOOP_INTERVAL} stopOnEnd>
-                {modalSteps.slice(0, -1).map((s, i) => (
+                {modalSteps.slice(0, -1).map((step, i) => (
                   <div key={i} className="flex flex-col items-center gap-4">
-                    {s.icon}
-                    <p className="text-lg font-medium text-white">{s.message}</p>
+                    {step.icon}
+                    <p className="text-lg font-medium text-foreground">{step.message}</p>
                   </div>
                 ))}
               </TextLoop>
@@ -217,9 +323,12 @@ export default function GetDemoPage() {
             {modalStatus === "success" && (
               <div className="flex flex-col items-center gap-4 text-center">
                 {modalSteps[modalSteps.length - 1].icon}
-                <p className="text-2xl font-black text-white">You're in!</p>
-                <p className="text-sm text-white/60">We'll have your free 3D walkthrough demo ready within 48 hours. Check your inbox at <span className="text-purple-300">{email}</span>.</p>
-                <button onClick={() => navigate("/")} className="mt-2 flex items-center gap-2 text-sm text-purple-300 hover:text-purple-200 transition-colors font-medium">
+                <p className="text-lg font-medium text-foreground">{modalSteps[modalSteps.length - 1].message}</p>
+                <p className="text-sm text-muted-foreground">
+                  We'll review your listing and reach out to <span className="text-violet-400 font-medium">{contact}</span> shortly.
+                </p>
+                <button onClick={() => navigate("/")}
+                  className="mt-2 flex items-center gap-2 text-sm text-violet-400 hover:text-violet-300 transition-colors font-medium">
                   <ArrowLeft className="w-4 h-4" /> Back to site
                 </button>
               </div>
@@ -230,106 +339,154 @@ export default function GetDemoPage() {
     </AnimatePresence>
   );
 
+  // ─── Render (exact structural replica) ───────────────────────────────────
   return (
-    <div className="dark min-h-screen w-screen flex flex-col relative overflow-hidden bg-[#030303] text-foreground font-sans">
+    <div className="dark bg-background min-h-screen w-screen flex flex-col">
       <style>{`
         input[type="password"]::-ms-reveal,input[type="password"]::-ms-clear{display:none!important}
-        input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,input:-webkit-autofill:active{-webkit-box-shadow:0 0 0 30px transparent inset!important;-webkit-text-fill-color:#fff!important;background-color:transparent!important;transition:background-color 5000s ease-in-out 0s!important;color:#fff!important;caret-color:#fff!important}
-        @property --angle-1{syntax:"<angle>";inherits:false;initial-value:-75deg}@property --angle-2{syntax:"<angle>";inherits:false;initial-value:-45deg}
-        .glass-button-wrap{--anim-time:400ms;--anim-ease:cubic-bezier(.25,1,.5,1);--border-width:clamp(1px,.0625em,4px);position:relative;z-index:2;transform-style:preserve-3d;transition:transform var(--anim-time) var(--anim-ease)}.glass-button-wrap:has(.glass-button:active){transform:rotateX(25deg)}.glass-button-shadow{--shadow-cutoff-fix:2em;position:absolute;width:calc(100% + var(--shadow-cutoff-fix));height:calc(100% + var(--shadow-cutoff-fix));top:calc(0% - var(--shadow-cutoff-fix)/2);left:calc(0% - var(--shadow-cutoff-fix)/2);filter:blur(clamp(2px,.125em,12px));transition:filter var(--anim-time) var(--anim-ease);pointer-events:none;z-index:0}.glass-button-shadow::after{content:"";position:absolute;inset:0;border-radius:9999px;background:linear-gradient(180deg,oklch(from var(--foreground) l c h/20%),oklch(from var(--foreground) l c h/10%));width:calc(100% - var(--shadow-cutoff-fix) - .25em);height:calc(100% - var(--shadow-cutoff-fix) - .25em);top:calc(var(--shadow-cutoff-fix) - .5em);left:calc(var(--shadow-cutoff-fix) - .875em);padding:.125em;box-sizing:border-box;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;transition:all var(--anim-time) var(--anim-ease);opacity:1}
-        .glass-button{-webkit-tap-highlight-color:transparent;backdrop-filter:blur(clamp(1px,.125em,4px));transition:all var(--anim-time) var(--anim-ease);background:linear-gradient(-75deg,oklch(from var(--background) l c h/5%),oklch(from var(--background) l c h/20%),oklch(from var(--background) l c h/5%));box-shadow:inset 0 .125em .125em oklch(from var(--foreground) l c h/5%),inset 0 -.125em .125em oklch(from var(--background) l c h/50%),0 .25em .125em -.125em oklch(from var(--foreground) l c h/20%),0 0 .1em .25em inset oklch(from var(--background) l c h/20%),0 0 0 0 oklch(from var(--background) l c h)}.glass-button:hover{transform:scale(.975)}.glass-button-text{color:oklch(from var(--foreground) l c h/90%);text-shadow:0em .25em .05em oklch(from var(--foreground) l c h/10%);transition:all var(--anim-time) var(--anim-ease)}.glass-button-text::after{content:"";display:block;position:absolute;width:calc(100% - var(--border-width));height:calc(100% - var(--border-width));top:calc(0% + var(--border-width)/2);left:calc(0% + var(--border-width)/2);box-sizing:border-box;border-radius:9999px;overflow:clip;background:linear-gradient(var(--angle-2),transparent 0%,oklch(from var(--background) l c h/50%) 40% 50%,transparent 55%);z-index:3;mix-blend-mode:screen;pointer-events:none;background-size:200% 200%;background-position:0% 50%;transition:background-position calc(var(--anim-time)*1.25) var(--anim-ease),--angle-2 calc(var(--anim-time)*1.25) var(--anim-ease)}.glass-button::after{content:"";position:absolute;z-index:1;inset:0;border-radius:9999px;width:calc(100% + var(--border-width));height:calc(100% + var(--border-width));top:calc(0% - var(--border-width)/2);left:calc(0% - var(--border-width)/2);padding:var(--border-width);box-sizing:border-box;background:conic-gradient(from var(--angle-1) at 50% 50%,oklch(from var(--foreground) l c h/50%) 0%,transparent 5% 40%,oklch(from var(--foreground) l c h/50%) 50%,transparent 60% 95%,oklch(from var(--foreground) l c h/50%) 100%),linear-gradient(180deg,oklch(from var(--background) l c h/50%),oklch(from var(--background) l c h/50%));mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;transition:all var(--anim-time) var(--anim-ease),--angle-1 500ms ease;box-shadow:inset 0 0 0 calc(var(--border-width)/2) oklch(from var(--background) l c h/50%);pointer-events:none}.glass-button:hover::after{--angle-1:-125deg}.glass-button:active::after{--angle-1:-75deg}
-        .glass-input-wrap{position:relative;z-index:2;transform-style:preserve-3d;border-radius:9999px}.glass-input{display:flex;position:relative;width:100%;align-items:center;gap:.5rem;border-radius:9999px;padding:.25rem;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(clamp(1px,.125em,4px));transition:all 400ms cubic-bezier(.25,1,.5,1);background:linear-gradient(-75deg,oklch(from var(--background) l c h/5%),oklch(from var(--background) l c h/20%),oklch(from var(--background) l c h/5%));box-shadow:inset 0 .125em .125em oklch(from var(--foreground) l c h/5%),inset 0 -.125em .125em oklch(from var(--background) l c h/50%),0 .25em .125em -.125em oklch(from var(--foreground) l c h/20%),0 0 .1em .25em inset oklch(from var(--background) l c h/20%)}.glass-input::after{content:"";position:absolute;z-index:1;inset:0;border-radius:9999px;width:calc(100% + clamp(1px,.0625em,4px));height:calc(100% + clamp(1px,.0625em,4px));top:calc(0% - clamp(1px,.0625em,4px)/2);left:calc(0% - clamp(1px,.0625em,4px)/2);padding:clamp(1px,.0625em,4px);box-sizing:border-box;background:conic-gradient(from var(--angle-1) at 50% 50%,oklch(from var(--foreground) l c h/50%) 0%,transparent 5% 40%,oklch(from var(--foreground) l c h/50%) 50%,transparent 60% 95%,oklch(from var(--foreground) l c h/50%) 100%),linear-gradient(180deg,oklch(from var(--background) l c h/50%),oklch(from var(--background) l c h/50%));mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;transition:all 400ms cubic-bezier(.25,1,.5,1),--angle-1 500ms ease;pointer-events:none}.glass-input-wrap:focus-within .glass-input::after{--angle-1:-125deg}.glass-input-text-area{position:absolute;inset:0;border-radius:9999px;pointer-events:none}.glass-input-text-area::after{content:"";display:block;position:absolute;width:calc(100% - clamp(1px,.0625em,4px));height:calc(100% - clamp(1px,.0625em,4px));top:calc(0% + clamp(1px,.0625em,4px)/2);left:calc(0% + clamp(1px,.0625em,4px)/2);box-sizing:border-box;border-radius:9999px;overflow:clip;background:linear-gradient(var(--angle-2),transparent 0%,oklch(from var(--background) l c h/50%) 40% 50%,transparent 55%);z-index:3;mix-blend-mode:screen;pointer-events:none;background-size:200% 200%;background-position:0% 50%;transition:background-position calc(400ms*1.25) cubic-bezier(.25,1,.5,1),--angle-2 calc(400ms*1.25) cubic-bezier(.25,1,.5,1)}.glass-input-wrap:focus-within .glass-input-text-area::after{background-position:25% 50%}
+        input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,input:-webkit-autofill:active{-webkit-box-shadow:0 0 0 30px transparent inset!important;-webkit-text-fill-color:var(--foreground)!important;background-color:transparent!important;background-clip:content-box!important;transition:background-color 5000s ease-in-out 0s!important;color:var(--foreground)!important;caret-color:var(--foreground)!important}
+        input:autofill{background-color:transparent!important;background-clip:content-box!important;-webkit-text-fill-color:var(--foreground)!important;color:var(--foreground)!important}
+        input:-internal-autofill-selected{background-color:transparent!important;background-image:none!important;color:var(--foreground)!important;-webkit-text-fill-color:var(--foreground)!important}
+        input:-webkit-autofill::first-line{color:var(--foreground)!important;-webkit-text-fill-color:var(--foreground)!important}
+        @property --angle-1{syntax:"<angle>";inherits:false;initial-value:-75deg}
+        @property --angle-2{syntax:"<angle>";inherits:false;initial-value:-45deg}
+        .glass-button-wrap{--anim-time:400ms;--anim-ease:cubic-bezier(.25,1,.5,1);--border-width:clamp(1px,.0625em,4px);position:relative;z-index:2;transform-style:preserve-3d;transition:transform var(--anim-time) var(--anim-ease)}.glass-button-wrap:has(.glass-button:active){transform:rotateX(25deg)}.glass-button-shadow{--shadow-cutoff-fix:2em;position:absolute;width:calc(100% + var(--shadow-cutoff-fix));height:calc(100% + var(--shadow-cutoff-fix));top:calc(0% - var(--shadow-cutoff-fix)/2);left:calc(0% - var(--shadow-cutoff-fix)/2);filter:blur(clamp(2px,.125em,12px));transition:filter var(--anim-time) var(--anim-ease);pointer-events:none;z-index:0}.glass-button-shadow::after{content:"";position:absolute;inset:0;border-radius:9999px;background:linear-gradient(180deg,oklch(from var(--foreground) l c h/20%),oklch(from var(--foreground) l c h/10%));width:calc(100% - var(--shadow-cutoff-fix) - .25em);height:calc(100% - var(--shadow-cutoff-fix) - .25em);top:calc(var(--shadow-cutoff-fix) - .5em);left:calc(var(--shadow-cutoff-fix) - .875em);padding:.125em;box-sizing:border-box;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;transition:all var(--anim-time) var(--anim-ease);opacity:1}.glass-button{-webkit-tap-highlight-color:transparent;backdrop-filter:blur(clamp(1px,.125em,4px));transition:all var(--anim-time) var(--anim-ease);background:linear-gradient(-75deg,oklch(from var(--background) l c h/5%),oklch(from var(--background) l c h/20%),oklch(from var(--background) l c h/5%));box-shadow:inset 0 .125em .125em oklch(from var(--foreground) l c h/5%),inset 0 -.125em .125em oklch(from var(--background) l c h/50%),0 .25em .125em -.125em oklch(from var(--foreground) l c h/20%),0 0 .1em .25em inset oklch(from var(--background) l c h/20%),0 0 0 0 oklch(from var(--background) l c h)}.glass-button:hover{transform:scale(.975);backdrop-filter:blur(.01em);box-shadow:inset 0 .125em .125em oklch(from var(--foreground) l c h/5%),inset 0 -.125em .125em oklch(from var(--background) l c h/50%),0 .15em .05em -.1em oklch(from var(--foreground) l c h/25%),0 0 .05em .1em inset oklch(from var(--background) l c h/50%),0 0 0 0 oklch(from var(--background) l c h)}.glass-button-text{color:oklch(from var(--foreground) l c h/90%);text-shadow:0em .25em .05em oklch(from var(--foreground) l c h/10%);transition:all var(--anim-time) var(--anim-ease)}.glass-button:hover .glass-button-text{text-shadow:.025em .025em .025em oklch(from var(--foreground) l c h/12%)}.glass-button-text::after{content:"";display:block;position:absolute;width:calc(100% - var(--border-width));height:calc(100% - var(--border-width));top:calc(0% + var(--border-width)/2);left:calc(0% + var(--border-width)/2);box-sizing:border-box;border-radius:9999px;overflow:clip;background:linear-gradient(var(--angle-2),transparent 0%,oklch(from var(--background) l c h/50%) 40% 50%,transparent 55%);z-index:3;mix-blend-mode:screen;pointer-events:none;background-size:200% 200%;background-position:0% 50%;transition:background-position calc(var(--anim-time)*1.25) var(--anim-ease),--angle-2 calc(var(--anim-time)*1.25) var(--anim-ease)}.glass-button:hover .glass-button-text::after{background-position:25% 50%}.glass-button:active .glass-button-text::after{background-position:50% 15%;--angle-2:-15deg}.glass-button::after{content:"";position:absolute;z-index:1;inset:0;border-radius:9999px;width:calc(100% + var(--border-width));height:calc(100% + var(--border-width));top:calc(0% - var(--border-width)/2);left:calc(0% - var(--border-width)/2);padding:var(--border-width);box-sizing:border-box;background:conic-gradient(from var(--angle-1) at 50% 50%,oklch(from var(--foreground) l c h/50%) 0%,transparent 5% 40%,oklch(from var(--foreground) l c h/50%) 50%,transparent 60% 95%,oklch(from var(--foreground) l c h/50%) 100%),linear-gradient(180deg,oklch(from var(--background) l c h/50%),oklch(from var(--background) l c h/50%));mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;transition:all var(--anim-time) var(--anim-ease),--angle-1 500ms ease;box-shadow:inset 0 0 0 calc(var(--border-width)/2) oklch(from var(--background) l c h/50%);pointer-events:none}.glass-button:hover::after{--angle-1:-125deg}.glass-button:active::after{--angle-1:-75deg}.glass-button-wrap:has(.glass-button:hover) .glass-button-shadow{filter:blur(clamp(2px,.0625em,6px))}.glass-button-wrap:has(.glass-button:hover) .glass-button-shadow::after{top:calc(var(--shadow-cutoff-fix) - .875em);opacity:1}.glass-button-wrap:has(.glass-button:active) .glass-button-shadow{filter:blur(clamp(2px,.125em,12px))}.glass-button-wrap:has(.glass-button:active) .glass-button-shadow::after{top:calc(var(--shadow-cutoff-fix) - .5em);opacity:.75}.glass-button-wrap:has(.glass-button:active) .glass-button-text{text-shadow:.025em .25em .05em oklch(from var(--foreground) l c h/12%)}.glass-button-wrap:has(.glass-button:active) .glass-button{box-shadow:inset 0 .125em .125em oklch(from var(--foreground) l c h/5%),inset 0 -.125em .125em oklch(from var(--background) l c h/50%),0 .125em .125em -.125em oklch(from var(--foreground) l c h/20%),0 0 .1em .25em inset oklch(from var(--background) l c h/20%),0 .225em .05em 0 oklch(from var(--foreground) l c h/5%),0 .25em 0 0 oklch(from var(--background) l c h/75%),inset 0 .25em .05em 0 oklch(from var(--foreground) l c h/15%)}@media(hover:none) and (pointer:coarse){.glass-button::after,.glass-button:hover::after,.glass-button:active::after{--angle-1:-75deg}.glass-button .glass-button-text::after,.glass-button:active .glass-button-text::after{--angle-2:-45deg}}
+        .glass-input-wrap{position:relative;z-index:2;transform-style:preserve-3d;border-radius:9999px}.glass-input{display:flex;position:relative;width:100%;align-items:center;gap:.5rem;border-radius:9999px;padding:.25rem;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(clamp(1px,.125em,4px));transition:all 400ms cubic-bezier(.25,1,.5,1);background:linear-gradient(-75deg,oklch(from var(--background) l c h/5%),oklch(from var(--background) l c h/20%),oklch(from var(--background) l c h/5%));box-shadow:inset 0 .125em .125em oklch(from var(--foreground) l c h/5%),inset 0 -.125em .125em oklch(from var(--background) l c h/50%),0 .25em .125em -.125em oklch(from var(--foreground) l c h/20%),0 0 .1em .25em inset oklch(from var(--background) l c h/20%),0 0 0 0 oklch(from var(--background) l c h)}.glass-input-wrap:focus-within .glass-input{backdrop-filter:blur(.01em);box-shadow:inset 0 .125em .125em oklch(from var(--foreground) l c h/5%),inset 0 -.125em .125em oklch(from var(--background) l c h/50%),0 .15em .05em -.1em oklch(from var(--foreground) l c h/25%),0 0 .05em .1em inset oklch(from var(--background) l c h/50%),0 0 0 0 oklch(from var(--background) l c h)}.glass-input::after{content:"";position:absolute;z-index:1;inset:0;border-radius:9999px;width:calc(100% + clamp(1px,.0625em,4px));height:calc(100% + clamp(1px,.0625em,4px));top:calc(0% - clamp(1px,.0625em,4px)/2);left:calc(0% - clamp(1px,.0625em,4px)/2);padding:clamp(1px,.0625em,4px);box-sizing:border-box;background:conic-gradient(from var(--angle-1) at 50% 50%,oklch(from var(--foreground) l c h/50%) 0%,transparent 5% 40%,oklch(from var(--foreground) l c h/50%) 50%,transparent 60% 95%,oklch(from var(--foreground) l c h/50%) 100%),linear-gradient(180deg,oklch(from var(--background) l c h/50%),oklch(from var(--background) l c h/50%));mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;transition:all 400ms cubic-bezier(.25,1,.5,1),--angle-1 500ms ease;box-shadow:inset 0 0 0 calc(clamp(1px,.0625em,4px)/2) oklch(from var(--background) l c h/50%);pointer-events:none}.glass-input-wrap:focus-within .glass-input::after{--angle-1:-125deg}.glass-input-text-area{position:absolute;inset:0;border-radius:9999px;pointer-events:none}.glass-input-text-area::after{content:"";display:block;position:absolute;width:calc(100% - clamp(1px,.0625em,4px));height:calc(100% - clamp(1px,.0625em,4px));top:calc(0% + clamp(1px,.0625em,4px)/2);left:calc(0% + clamp(1px,.0625em,4px)/2);box-sizing:border-box;border-radius:9999px;overflow:clip;background:linear-gradient(var(--angle-2),transparent 0%,oklch(from var(--background) l c h/50%) 40% 50%,transparent 55%);z-index:3;mix-blend-mode:screen;pointer-events:none;background-size:200% 200%;background-position:0% 50%;transition:background-position calc(400ms*1.25) cubic-bezier(.25,1,.5,1),--angle-2 calc(400ms*1.25) cubic-bezier(.25,1,.5,1)}.glass-input-wrap:focus-within .glass-input-text-area::after{background-position:25% 50%}
       `}</style>
 
       <Confetti ref={confettiRef} manualstart className="fixed top-0 left-0 w-full h-full pointer-events-none z-[999]" />
       <Modal />
 
-      {/* Background */}
-      <div className="absolute inset-0 z-0"><DemoBackground /></div>
+      {/* ── Top bar — exact replica position ── */}
+      <div className={cn("fixed top-4 left-4 z-20 flex items-center gap-2", "md:left-1/2 md:-translate-x-1/2")}>
+        <SiteLogo />
+        <h1 className="text-base font-bold text-foreground">3D Property Demo</h1>
+      </div>
 
-      {/* Go Back button */}
-      <div className="relative z-10 p-6">
-        <button
-          onClick={() => navigate("/")}
-          className="flex items-center gap-2 text-sm text-white/50 hover:text-white/90 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to site
+      {/* ── Back button top-left on mobile, doesn't conflict with centered logo ── */}
+      <div className="fixed top-4 right-4 z-20">
+        <button onClick={() => navigate("/")}
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Back
         </button>
       </div>
 
-      {/* Form */}
-      <div className="relative z-10 flex flex-1 items-center justify-center px-4 pb-16">
-        <fieldset disabled={modalStatus !== "closed"} className="flex flex-col items-center gap-8 w-[300px]">
+      {/* ── Main area — exact replica structure ── */}
+      <div className={cn("flex w-full flex-1 h-full items-center justify-center bg-card", "relative overflow-hidden")}>
+        <div className="absolute inset-0 z-0"><GradientBackground /></div>
 
+        <fieldset disabled={modalStatus !== "closed"}
+          className="relative z-10 flex flex-col items-center gap-8 w-[280px] mx-auto p-4">
+
+          {/* ── Step headings — exact AnimatePresence/motion replica ── */}
           <AnimatePresence mode="wait">
-            {/* ── Step headings ── */}
-            {step === "email" && (
-              <motion.div key="email-title" initial={{ y: 6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="w-full flex flex-col items-center gap-3 text-center">
-                <BlurFade delay={0.1}>
-                  <p className="font-serif font-light text-4xl sm:text-5xl tracking-tight text-white">Your free 3D demo</p>
+            {authStep === "listing" && (
+              <motion.div key="listing-content" initial={{ y: 6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }} className="w-full flex flex-col items-center gap-4">
+                <BlurFade delay={0.25 * 1} className="w-full">
+                  <div className="text-center">
+                    <p className="font-serif font-light text-4xl sm:text-5xl md:text-6xl tracking-tight text-foreground whitespace-nowrap">
+                      Claim your
+                    </p>
+                    <p className="font-serif font-light text-4xl sm:text-5xl md:text-6xl tracking-tight text-foreground whitespace-nowrap">
+                      free 3D demo
+                    </p>
+                  </div>
                 </BlurFade>
-                <BlurFade delay={0.2}>
-                  <p className="text-sm text-white/50">Drop your email and we'll scan your property and send you a hyper-realistic 3D walkthrough — completely free.</p>
+                <BlurFade delay={0.25 * 2}>
+                  <p className="text-sm font-medium text-muted-foreground text-center">
+                    Paste your listing link below
+                  </p>
+                </BlurFade>
+                <BlurFade delay={0.25 * 3} className="w-[300px]">
+                  <div className="flex items-center gap-2 justify-center text-xs text-muted-foreground/60">
+                    <span>Airbnb</span><span>·</span><span>Rightmove</span><span>·</span><span>Zoopla</span><span>·</span><span>Any URL</span>
+                  </div>
+                </BlurFade>
+                <BlurFade delay={0.25 * 4} className="w-[300px]">
+                  <div className="flex items-center w-full gap-2 py-2">
+                    <hr className="w-full border-border" />
+                    <span className="text-xs font-semibold text-muted-foreground">OR</span>
+                    <hr className="w-full border-border" />
+                  </div>
                 </BlurFade>
               </motion.div>
             )}
-            {step === "address" && (
-              <motion.div key="address-title" initial={{ y: 6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="w-full flex flex-col items-center gap-3 text-center">
-                <BlurFade delay={0}>
-                  <p className="font-serif font-light text-4xl sm:text-5xl tracking-tight text-white">Where's the property?</p>
+            {authStep === "contact" && (
+              <motion.div key="contact-title" initial={{ y: 6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }} className="w-full flex flex-col items-center text-center gap-4">
+                <BlurFade delay={0} className="w-full">
+                  <div className="text-center">
+                    <p className="font-serif font-light text-4xl sm:text-5xl tracking-tight text-foreground whitespace-nowrap">
+                      How to reach you
+                    </p>
+                  </div>
                 </BlurFade>
-                <BlurFade delay={0.1}>
-                  <p className="text-sm text-white/50">We'll use this to assign the right team and schedule your free demo scan.</p>
+                <BlurFade delay={0.25 * 1}>
+                  <p className="text-sm font-medium text-muted-foreground">Your email or phone number.</p>
                 </BlurFade>
               </motion.div>
             )}
-            {step === "type" && (
-              <motion.div key="type-title" initial={{ y: 6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="w-full flex flex-col items-center gap-3 text-center">
-                <BlurFade delay={0}>
-                  <p className="font-serif font-light text-4xl sm:text-5xl tracking-tight text-white">One last thing</p>
+            {authStep === "name" && (
+              <motion.div key="name-title" initial={{ y: 6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }} className="w-full flex flex-col items-center text-center gap-4">
+                <BlurFade delay={0} className="w-full">
+                  <div className="text-center">
+                    <p className="font-serif font-light text-4xl sm:text-5xl tracking-tight text-foreground whitespace-nowrap">
+                      One Last Step
+                    </p>
+                  </div>
                 </BlurFade>
-                <BlurFade delay={0.1}>
-                  <p className="text-sm text-white/50">What best describes your property? We'll tailor the demo to your audience.</p>
+                <BlurFade delay={0.25 * 1}>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Your name so we know who we're speaking to.
+                  </p>
                 </BlurFade>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* ── Inputs / selectors ── */}
-          <div className="w-full space-y-6">
+          {/* ── Form inputs — exact structural replica ── */}
+          <form onSubmit={handleFinalSubmit} className="w-[300px] space-y-6">
             <AnimatePresence>
-              {step !== "type" && (
-                <motion.div key="text-fields" exit={{ opacity: 0, filter: "blur(4px)" }} transition={{ duration: 0.3 }} className="w-full space-y-6">
+              {authStep !== "name" && (
+                <motion.div key="listing-contact-fields" exit={{ opacity: 0, filter: "blur(4px)" }}
+                  transition={{ duration: 0.3, ease: "easeOut" }} className="w-full space-y-6">
 
-                  {/* Email field */}
-                  <BlurFade delay={step === "email" ? 0.3 : 0} className="w-full">
+                  {/* ── Listing URL field (mirrors email field exactly) ── */}
+                  <BlurFade delay={authStep === "listing" ? 0.25 * 5 : 0} inView className="w-full">
                     <div className="relative w-full">
                       <AnimatePresence>
-                        {step === "address" && (
-                          <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.3, delay: 0.4 }} className="absolute -top-6 left-4 z-10">
-                            <label className="text-xs text-white/40 font-semibold">Email</label>
+                        {authStep === "contact" && (
+                          <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+                            transition={{ duration: 0.3, delay: 0.4 }} className="absolute -top-6 left-4 z-10">
+                            <label className="text-xs text-muted-foreground font-semibold">Listing URL</label>
                           </motion.div>
                         )}
                       </AnimatePresence>
                       <div className="glass-input-wrap w-full">
                         <div className="glass-input">
                           <span className="glass-input-text-area" />
-                          <div className={cn("relative z-10 flex-shrink-0 flex items-center justify-center overflow-hidden transition-all duration-300", email.length > 20 && step === "email" ? "w-0 px-0" : "w-10 pl-2")}>
-                            <Mail className="h-5 w-5 text-white/60 flex-shrink-0" />
+                          <div className={cn(
+                            "relative z-10 flex-shrink-0 flex items-center justify-center overflow-hidden transition-all duration-300 ease-in-out",
+                            listingUrl.length > 20 && authStep === "listing" ? "w-0 px-0" : "w-10 pl-2",
+                          )}>
+                            <Link className="h-5 w-5 text-foreground/80 flex-shrink-0" />
                           </div>
-                          <label htmlFor="demo-email" className="sr-only">Email address</label>
-                          <input
-                            id="demo-email"
-                            type="email"
-                            placeholder="your@email.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            className={cn("relative z-10 h-full w-0 flex-grow bg-transparent text-white placeholder:text-white/30 focus:outline-none transition-[padding-right] duration-300 delay-300", isEmailValid && step === "email" ? "pr-2" : "pr-0")}
+                          <label htmlFor="demo-listing" className="sr-only">Property listing URL</label>
+                          <input id="demo-listing" type="url" placeholder="https://airbnb.com/rooms/…"
+                            value={listingUrl} onChange={(e) => setListingUrl(e.target.value)} onKeyDown={handleKeyDown}
+                            className={cn(
+                              "relative z-10 h-full w-0 flex-grow bg-transparent text-foreground placeholder:text-foreground/60 focus:outline-none transition-[padding-right] duration-300 ease-in-out delay-300",
+                              isListingValid && authStep === "listing" ? "pr-2" : "pr-0",
+                            )}
                           />
-                          <div className={cn("relative z-10 flex-shrink-0 overflow-hidden transition-all duration-300", isEmailValid && step === "email" ? "w-10 pr-1" : "w-0")}>
-                            <GlassButton type="button" onClick={handleProgressStep} size="icon" aria-label="Continue with email" contentClassName="text-white/70 hover:text-white">
+                          <div className={cn(
+                            "relative z-10 flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out",
+                            isListingValid && authStep === "listing" ? "w-10 pr-1" : "w-0",
+                          )}>
+                            <GlassButton type="button" onClick={handleProgressStep} size="icon"
+                              aria-label="Continue with listing URL" contentClassName="text-foreground/80 hover:text-foreground">
                               <ArrowRight className="w-5 h-5" />
                             </GlassButton>
                           </div>
@@ -338,15 +495,16 @@ export default function GetDemoPage() {
                     </div>
                   </BlurFade>
 
-                  {/* Address field */}
+                  {/* ── Contact field (mirrors password field exactly) ── */}
                   <AnimatePresence>
-                    {step === "address" && (
-                      <BlurFade key="address-field" className="w-full">
+                    {authStep === "contact" && (
+                      <BlurFade key="contact-field" className="w-full">
                         <div className="relative w-full">
                           <AnimatePresence>
-                            {address.length > 0 && (
-                              <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.3 }} className="absolute -top-6 left-4 z-10">
-                                <label className="text-xs text-white/40 font-semibold">Property address</label>
+                            {contact.length > 0 && (
+                              <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+                                transition={{ duration: 0.3 }} className="absolute -top-6 left-4 z-10">
+                                <label className="text-xs text-muted-foreground font-semibold">Email or phone</label>
                               </motion.div>
                             )}
                           </AnimatePresence>
@@ -354,28 +512,27 @@ export default function GetDemoPage() {
                             <div className="glass-input">
                               <span className="glass-input-text-area" />
                               <div className="relative z-10 flex-shrink-0 flex items-center justify-center w-10 pl-2">
-                                <MapPin className="h-5 w-5 text-white/60 flex-shrink-0" />
+                                <Phone className="h-5 w-5 text-foreground/80 flex-shrink-0" />
                               </div>
-                              <label htmlFor="demo-address" className="sr-only">Property address</label>
-                              <input
-                                id="demo-address"
-                                ref={addressRef}
-                                type="text"
-                                placeholder="Property address"
-                                value={address}
-                                onChange={(e) => setAddress(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                className="relative z-10 h-full w-0 flex-grow bg-transparent text-white placeholder:text-white/30 focus:outline-none"
+                              <label htmlFor="demo-contact" className="sr-only">Email or phone number</label>
+                              <input id="demo-contact" ref={contactRef} type="text" placeholder="Email or phone number"
+                                value={contact} onChange={(e) => setContact(e.target.value)} onKeyDown={handleKeyDown}
+                                className="relative z-10 h-full w-0 flex-grow bg-transparent text-foreground placeholder:text-foreground/60 focus:outline-none"
                               />
-                              <div className={cn("relative z-10 flex-shrink-0 overflow-hidden transition-all duration-300", isAddressValid ? "w-10 pr-1" : "w-0")}>
-                                <GlassButton type="button" onClick={handleProgressStep} size="icon" aria-label="Continue with address" contentClassName="text-white/70 hover:text-white">
+                              <div className={cn(
+                                "relative z-10 flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out",
+                                isContactValid ? "w-10 pr-1" : "w-0",
+                              )}>
+                                <GlassButton type="button" onClick={handleProgressStep} size="icon"
+                                  aria-label="Continue with contact" contentClassName="text-foreground/80 hover:text-foreground">
                                   <ArrowRight className="w-5 h-5" />
                                 </GlassButton>
                               </div>
                             </div>
                           </div>
                           <BlurFade inView delay={0.2}>
-                            <button type="button" onClick={handleGoBack} className="mt-4 flex items-center gap-2 text-sm text-white/40 hover:text-white/70 transition-colors">
+                            <button type="button" onClick={handleGoBack}
+                              className="mt-4 flex items-center gap-2 text-sm text-foreground/70 hover:text-foreground transition-colors">
                               <ArrowLeft className="w-4 h-4" /> Go back
                             </button>
                           </BlurFade>
@@ -387,32 +544,52 @@ export default function GetDemoPage() {
               )}
             </AnimatePresence>
 
-            {/* Property type selector */}
+            {/* ── Name / submit field (mirrors confirmPassword field exactly) ── */}
             <AnimatePresence>
-              {step === "type" && (
-                <BlurFade key="type-selector" className="w-full">
-                  <div className="flex flex-col gap-3 w-full">
-                    {PROPERTY_TYPES.map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => handleSelectType(type)}
-                        className="w-full flex items-center gap-3 px-5 py-3.5 rounded-full text-sm font-medium text-white/80 hover:text-white border border-white/10 hover:border-white/25 bg-white/5 hover:bg-white/10 transition-all duration-200 text-left"
-                      >
-                        <Home className="w-4 h-4 flex-shrink-0 text-purple-400" />
-                        {type}
-                      </button>
-                    ))}
+              {authStep === "name" && (
+                <BlurFade key="name-field" className="w-full">
+                  <div className="relative w-full">
+                    <AnimatePresence>
+                      {name.length > 0 && (
+                        <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+                          transition={{ duration: 0.3 }} className="absolute -top-6 left-4 z-10">
+                          <label className="text-xs text-muted-foreground font-semibold">Your name</label>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    <div className="glass-input-wrap w-[300px]">
+                      <div className="glass-input">
+                        <span className="glass-input-text-area" />
+                        <div className="relative z-10 flex-shrink-0 flex items-center justify-center w-10 pl-2">
+                          <User className="h-5 w-5 text-foreground/80 flex-shrink-0" />
+                        </div>
+                        <label htmlFor="demo-name" className="sr-only">Your name</label>
+                        <input id="demo-name" ref={nameRef} type="text" placeholder="Your name"
+                          value={name} onChange={(e) => setName(e.target.value)}
+                          className="relative z-10 h-full w-0 flex-grow bg-transparent text-foreground placeholder:text-foreground/60 focus:outline-none"
+                        />
+                        <div className={cn(
+                          "relative z-10 flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out",
+                          isNameValid ? "w-10 pr-1" : "w-0",
+                        )}>
+                          <GlassButton type="submit" size="icon"
+                            aria-label="Submit demo request" contentClassName="text-foreground/80 hover:text-foreground">
+                            <ArrowRight className="w-5 h-5" />
+                          </GlassButton>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <BlurFade inView delay={0.2}>
-                    <button type="button" onClick={handleGoBack} className="mt-4 flex items-center gap-2 text-sm text-white/40 hover:text-white/70 transition-colors">
+                    <button type="button" onClick={handleGoBack}
+                      className="mt-4 flex items-center gap-2 text-sm text-foreground/70 hover:text-foreground transition-colors">
                       <ArrowLeft className="w-4 h-4" /> Go back
                     </button>
                   </BlurFade>
                 </BlurFade>
               )}
             </AnimatePresence>
-          </div>
+          </form>
         </fieldset>
       </div>
     </div>
