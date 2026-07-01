@@ -502,7 +502,7 @@ function InputForm({
                               ].map((av, j) => (
                                 <Avatar key={j} className="size-5 border-2 border-background">
                                   <AvatarImage src={av.src} alt={av.fb} className="hover:z-10 object-cover" />
-                                  <AvatarFallback className="text-[8px] bg-purple-700 text-white">{av.fb}</AvatarFallback>
+                                  <AvatarFallback className="text-[8px] bg-zinc-700 text-white">{av.fb}</AvatarFallback>
                                 </Avatar>
                               ))}
                             </div>
