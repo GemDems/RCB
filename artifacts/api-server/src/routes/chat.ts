@@ -28,6 +28,18 @@ About Sobers (use these facts, never invent others):
 
 Conversion goal: get every visitor to book a free demo call. That is the only outcome that matters.`;
 
+const REFINE_PREAMBLE = `You are a world-class direct-response copywriter and sales conversion expert.
+
+Your job: take a draft reply from a property marketing AI agent and rewrite it to be dramatically more persuasive, emotionally compelling, and conversion-focused — without being pushy or robotic.
+
+Rules for your rewrite:
+- Keep all factual claims from the draft (do not invent new ones)
+- Make the language sharper, warmer, and more urgent
+- Paint a vivid picture of the outcome the visitor gets — more bookings, more money, less stress
+- End with a clear, natural, irresistible nudge to book a free demo
+- 2–4 tight paragraphs, conversational tone
+- Output ONLY the final rewritten reply — no preamble, no labels, no explanation`;
+
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -54,15 +66,42 @@ router.post("/chat", async (req, res) => {
 
     const lastMessage = messages[messages.length - 1];
 
-    const stream = await cohere.chatStream({
+    // ── Pass 1: Generate initial draft (collected server-side, not streamed) ──
+    let draft = "";
+    const pass1 = await cohere.chatStream({
       model: "command-r7b-12-2024",
       preamble: SYSTEM_PROMPT,
       chatHistory: cohereMessages,
       message: lastMessage.content,
-      temperature: 0.4,
+      temperature: 0.5,
     });
 
-    for await (const event of stream) {
+    for await (const event of pass1) {
+      if (event.eventType === "text-generation") {
+        draft += event.text;
+      }
+    }
+
+    // ── Pass 2: Refine for maximum conversion — stream this to the client ──
+    const refinePrompt = `Here is a draft sales reply from the Sobers AI agent:
+
+---
+${draft}
+---
+
+The visitor's original question was: "${lastMessage.content}"
+
+Rewrite this reply to maximise conversion. Make it more compelling, more specific, and end with a stronger, more natural call-to-action to book a free demo. Keep all facts accurate. Output ONLY the final rewritten reply.`;
+
+    const pass2 = await cohere.chatStream({
+      model: "command-r7b-12-2024",
+      preamble: REFINE_PREAMBLE,
+      chatHistory: [],
+      message: refinePrompt,
+      temperature: 0.7,
+    });
+
+    for await (const event of pass2) {
       if (event.eventType === "text-generation") {
         res.write(`data: ${JSON.stringify({ content: event.text })}\n\n`);
       }
