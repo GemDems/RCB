@@ -87,6 +87,16 @@
   animation: grid 15s linear infinite;
 }
 
+/* ── StarButton ── */
+@keyframes star-btn {
+  0%   { offset-distance: 0%; }
+  100% { offset-distance: 100%; }
+}
+
+.animate-star-btn {
+  animation: star-btn calc(var(--duration, 3) * 1s) linear infinite;
+}
+
 /* ── ShinyButton ── */
 @property --gradient-angle {
   syntax: "<angle>";

@@ -9,6 +9,7 @@ import { SiriWave } from "./ui/siri-wave"
 import { LoadingBreadcrumb } from "./ui/loading-breadcrumb"
 import { AgentsThinkingBadge, PALETTES, PixelOrb } from "./ui/grok-agent-thinking-indicator"
 import { TextShimmer } from "./ui/shimmer-text"
+import { StarButton } from "./ui/star-button"
 
 /* ─────────────────────────────────────────────
    ColorOrb
@@ -99,7 +100,7 @@ type InputMode = { search: boolean; think: boolean; canvas: boolean }
 /* ─────────────────────────────────────────────
    Context
 ───────────────────────────────────────────── */
-interface CtxShape { showForm: boolean; triggerOpen: () => void; triggerClose: () => void }
+interface CtxShape { showForm: boolean; triggerOpen: () => void; triggerClose: () => void; triggerReset: () => void }
 const FormCtx = React.createContext({} as CtxShape)
 const useFormCtx = () => React.useContext(FormCtx)
 
@@ -166,11 +167,9 @@ function FullGrokPanel() {
 }
 
 /* ─────────────────────────────────────────────
-   ThinkingArea — mode-driven staged reveal
-   - search mode: SiriWave + Cooking
-   - think mode:  SiriWave + Cooking + Grok (clickable pill → full expand)
-   - canvas mode: SiriWave only
-   - default:     SiriWave + Cooking
+   ThinkingArea — aligned vertical stack
+   All indicators start at the same left edge,
+   each animates in sequentially below the last.
 ───────────────────────────────────────────── */
 function ThinkingArea({
   cookingVisible,
@@ -190,22 +189,25 @@ function ThinkingArea({
   const showGrok = mode.think
 
   return (
-    <div className="flex flex-col items-start gap-2 py-1 pl-1">
+    <div className="flex flex-col items-start gap-2 py-1 w-full">
 
-      {/* 1 — SiriWave: always, transparent */}
-      <SiriWave
-        variant="wave"
-        size={80}
-        renderScale={0.85}
-        className="rounded-lg"
-        style={{ background: "transparent" }}
-      />
+      {/* 1 — SiriWave: always first, aligned left */}
+      <div className="w-full flex items-center">
+        <SiriWave
+          variant="wave"
+          size={80}
+          renderScale={0.85}
+          className="rounded-lg"
+          style={{ background: "transparent" }}
+        />
+      </div>
 
-      {/* 2 — Cooking breadcrumb: blurs in after 1.8s, hidden in canvas-only mode */}
+      {/* 2 — Cooking breadcrumb: blurs in after 1.8s */}
       <AnimatePresence>
         {showCooking && cookingVisible && (
           <motion.div
             key="cooking"
+            className="w-full"
             initial={{ opacity: 0, filter: "blur(6px)", y: 4 }}
             animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
             exit={{ opacity: 0, filter: "blur(4px)", y: -4 }}
@@ -226,19 +228,18 @@ function ThinkingArea({
         )}
       </AnimatePresence>
 
-      {/* 3 — Grok section: only in "think" mode, blurs in after cooking */}
+      {/* 3 — Grok section: only in "think" mode */}
       <AnimatePresence>
         {showGrok && cookingVisible && (
           <motion.div
             key="grok-section"
+            className="w-full"
             initial={{ opacity: 0, filter: "blur(4px)", y: 4 }}
             animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
             exit={{ opacity: 0, filter: "blur(4px)", y: -4 }}
             transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
-            className="w-full"
           >
             {!grokExpanded ? (
-              /* Collapsed pill — clicking it expands the full panel */
               <button
                 type="button"
                 onClick={onToggleGrok}
@@ -248,13 +249,12 @@ function ThinkingArea({
                 <AgentsThinkingBadge label="Agents thinking" count={4} />
               </button>
             ) : (
-              /* Expanded: full Grok panel — click component to collapse */
               <motion.div
                 initial={{ opacity: 0, height: 0, y: -8 }}
                 animate={{ opacity: 1, height: "auto", y: 0 }}
                 exit={{ opacity: 0, height: 0, y: -8 }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="overflow-hidden cursor-pointer"
+                className="overflow-hidden cursor-pointer w-full"
                 onClick={onToggleGrok}
                 title="Click to collapse"
               >
@@ -269,30 +269,99 @@ function ThinkingArea({
 }
 
 /* ─────────────────────────────────────────────
-   DockBar
+   DockBar — with StarButton long-press reset
 ───────────────────────────────────────────── */
 function DockBar() {
-  const { showForm, triggerOpen } = useFormCtx()
+  const { showForm, triggerOpen, triggerReset } = useFormCtx()
+
+  const holdTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [holding, setHolding] = React.useState(false)
+  const [held, setHeld] = React.useState(false)
+
+  const startHold = React.useCallback(() => {
+    setHolding(true)
+    holdTimerRef.current = setTimeout(() => {
+      setHeld(true)
+      triggerReset()
+      setTimeout(() => setHeld(false), 600)
+    }, 1500)
+  }, [triggerReset])
+
+  const cancelHold = React.useCallback(() => {
+    setHolding(false)
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current)
+      holdTimerRef.current = null
+    }
+  }, [])
+
+  React.useEffect(() => () => {
+    if (holdTimerRef.current) clearTimeout(holdTimerRef.current)
+  }, [])
+
   return (
     <footer className="mt-auto flex h-[44px] w-full items-center justify-center whitespace-nowrap select-none">
-      <div className="flex items-center justify-center gap-2 px-3 max-sm:h-10 max-sm:px-2">
-        <AnimatePresence mode="wait">
-          {showForm ? (
-            <motion.div key="blank" initial={{ opacity: 0 }} animate={{ opacity: 0 }} exit={{ opacity: 0 }} className="h-5 w-5" />
-          ) : (
-            <motion.div key="orb" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-              <ColorOrb dimension="24px" tones={ORB_TONES} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <div className="flex items-center justify-between gap-2 px-3 w-full max-sm:h-10 max-sm:px-2">
+        {/* Left — orb / spacer */}
+        <div className="flex-shrink-0 w-6 flex items-center justify-center">
+          <AnimatePresence mode="wait">
+            {showForm ? (
+              <motion.div key="blank" initial={{ opacity: 0 }} animate={{ opacity: 0 }} exit={{ opacity: 0 }} className="h-5 w-5" />
+            ) : (
+              <motion.div key="orb" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+                <ColorOrb dimension="24px" tones={ORB_TONES} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Centre — Ask Agent */}
         <Button
           type="button"
-          className="flex h-fit flex-1 justify-end rounded-full px-2 !py-0.5"
+          className="flex h-fit flex-1 justify-center rounded-full px-2 !py-0.5"
           variant="ghost"
           onClick={triggerOpen}
         >
           <span className="truncate">Ask Agent</span>
         </Button>
+
+        {/* Right — StarButton (hold to reset) */}
+        <div className="flex-shrink-0">
+          <AnimatePresence>
+            {showForm && (
+              <motion.div
+                key="star-reset"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.2 }}
+              >
+                <StarButton
+                  lightColor={held ? "#22c55e" : "#a78bfa"}
+                  backgroundColor="transparent"
+                  lightWidth={60}
+                  duration={2}
+                  borderWidth={1}
+                  className={cx(
+                    "h-7 px-2.5 text-xs border border-white/10 bg-background/60",
+                    holding && "scale-95",
+                    held && "scale-90",
+                  )}
+                  onMouseDown={startHold}
+                  onMouseUp={cancelHold}
+                  onMouseLeave={cancelHold}
+                  onTouchStart={startHold}
+                  onTouchEnd={cancelHold}
+                  onTouchCancel={cancelHold}
+                  title="Hold to clear chat history"
+                  aria-label="Hold to reset conversation"
+                >
+                  {held ? "Cleared" : "Reset"}
+                </StarButton>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </footer>
   )
@@ -354,7 +423,7 @@ function InputForm({
             transition={{ type: "spring", stiffness: 550 / SPEED, damping: 45, mass: 0.7 }}
             className="flex h-full flex-col p-1"
           >
-            {/* Header — centered label, equal-flex sides */}
+            {/* Header */}
             <div className="flex shrink-0 items-center py-1 px-1">
               <div className="flex-1">
                 <Button variant="link" onClick={triggerClose} className="px-0 text-muted-foreground hover:text-foreground">
@@ -385,7 +454,7 @@ function InputForm({
                 </div>
               ))}
 
-              {/* Thinking area — mode-driven */}
+              {/* Thinking area */}
               <AnimatePresence>
                 {thinking && (
                   <motion.div
@@ -394,7 +463,7 @@ function InputForm({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.3 }}
-                    className="flex justify-start"
+                    className="flex justify-start w-full"
                   >
                     <ThinkingArea
                       cookingVisible={cookingVisible}
@@ -410,7 +479,7 @@ function InputForm({
               <div ref={bottomRef} />
             </div>
 
-            {/* Input box — buttons drive which thinking indicators appear */}
+            {/* Input box */}
             <div className="shrink-0 mt-0.5 [&_.rounded-3xl]:rounded-xl [&_.p-2]:p-1.5">
               <PromptInputBox
                 onSend={(text) => onSend(text)}
@@ -470,12 +539,10 @@ export function AIChatWidget() {
     if (thinking) {
       setPhaseIndex(0)
       setCookingVisible(false)
-      // In think mode, auto-expand Grok indicator
       if (inputMode.think) setGrokExpanded(false)
 
       cookingTimerRef.current = setTimeout(() => {
         setCookingVisible(true)
-        // In think mode, auto-show collapsed Grok pill (don't auto-expand)
       }, 1800)
 
       phaseTimerRef.current = setInterval(() => {
@@ -497,9 +564,22 @@ export function AIChatWidget() {
   const triggerOpen  = React.useCallback(() => setShowForm(true),  [])
   const toggleGrok   = React.useCallback(() => setGrokExpanded((v) => !v), [])
 
+  /* Reset — abort any in-flight request and wipe history */
+  const triggerReset = React.useCallback(() => {
+    abortRef.current?.abort()
+    if (cookingTimerRef.current) clearTimeout(cookingTimerRef.current)
+    if (phaseTimerRef.current) clearInterval(phaseTimerRef.current)
+    setMessages([{ role: "assistant", content: WELCOME }])
+    setStreaming(false)
+    setThinking(false)
+    setCookingVisible(false)
+    setPhaseIndex(0)
+    setGrokExpanded(false)
+    setInputMode({ search: false, think: false, canvas: false })
+  }, [])
+
   const handleModeChange = React.useCallback((m: InputMode) => {
     setInputMode(m)
-    // When think is toggled off, collapse Grok
     if (!m.think) setGrokExpanded(false)
   }, [])
 
@@ -585,8 +665,8 @@ export function AIChatWidget() {
   )
 
   const ctx = React.useMemo(
-    () => ({ showForm, triggerOpen, triggerClose }),
-    [showForm, triggerOpen, triggerClose],
+    () => ({ showForm, triggerOpen, triggerClose, triggerReset }),
+    [showForm, triggerOpen, triggerClose, triggerReset],
   )
 
   const { w: formW, h: formH } = useFormDimensions()
