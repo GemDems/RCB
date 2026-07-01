@@ -1,4 +1,5 @@
 import * as React from "react"
+import { motion, useScroll, useTransform } from "motion/react"
 import { cn } from "@/lib/utils"
 import { ActiveUsersWidget } from "@/components/ActiveUsersWidget"
 import { ShinyButton } from "@/components/ui/ShinyButton"
@@ -65,9 +66,24 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
     },
     ref,
   ) => {
+    const containerRef = React.useRef<HTMLDivElement>(null)
+    const { scrollYProgress } = useScroll({
+      target: containerRef,
+      offset: ["start start", "end start"],
+    })
+    const bgOpacity = useTransform(scrollYProgress, [0, 0.45], [1, 0])
+    const bgScale = useTransform(scrollYProgress, [0, 0.45], [1, 1.06])
+
     return (
-      <div className={cn("relative", className)} ref={ref} {...props}>
-        <div className="absolute top-0 z-[0] h-screen w-screen bg-[radial-gradient(ellipse_20%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]" />
+      <div className={cn("relative", className)} ref={(node) => {
+        containerRef.current = node
+        if (typeof ref === "function") ref(node)
+        else if (ref) ref.current = node
+      }} {...props}>
+        <motion.div
+          style={{ opacity: bgOpacity, scale: bgScale }}
+          className="absolute top-0 z-[0] h-screen w-screen bg-[radial-gradient(ellipse_20%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] pointer-events-none"
+        />
         <section className="relative max-w-full mx-auto z-1">
           <RetroGrid {...gridOptions} />
           <div className="max-w-screen-xl z-10 mx-auto px-4 py-28 gap-12 md:px-8">
