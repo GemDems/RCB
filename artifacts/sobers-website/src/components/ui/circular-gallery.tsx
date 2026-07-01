@@ -185,11 +185,28 @@ class Media {
           float alpha = 1.0 - smoothstep(-edgeSmooth, edgeSmooth, d);
 
           // Per-card perimeter spotlight glow
-          float edgeDist = min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y));
-          float mouseDist = distance(vUv, uMouse);
-          float glow = smoothstep(0.28, 0.0, mouseDist) * smoothstep(0.10, 0.0, edgeDist) * uGlowIntensity;
-          vec3 glowColor = vec3(0.45, 0.55, 1.0) * glow * 2.5;
-          color.rgb = mix(color.rgb, clamp(color.rgb + glowColor, 0.0, 1.0), glow);
+          float dx = min(vUv.x, 1.0 - vUv.x);
+          float dy = min(vUv.y, 1.0 - vUv.y);
+          float edgeDist = min(dx, dy);
+          float borderMask = smoothstep(0.07, 0.0, edgeDist);
+
+          // Project mouse onto the axis of the nearest edge for a 1D spotlight
+          float alongEdgeDist;
+          if (dx < dy) {
+            alongEdgeDist = abs(vUv.y - clamp(uMouse.y, 0.0, 1.0));
+          } else {
+            alongEdgeDist = abs(vUv.x - clamp(uMouse.x, 0.0, 1.0));
+          }
+
+          // Fade out when mouse is not on this card
+          float outsideX = max(-uMouse.x, uMouse.x - 1.0);
+          float outsideY = max(-uMouse.y, uMouse.y - 1.0);
+          float mouseNearCard = 1.0 - smoothstep(0.0, 0.25, max(outsideX, outsideY));
+
+          float spotlightFalloff = smoothstep(0.45, 0.0, alongEdgeDist);
+          float glow = borderMask * spotlightFalloff * mouseNearCard * uGlowIntensity;
+          vec3 glowColor = vec3(0.4, 0.62, 1.0) * glow * 5.0;
+          color.rgb = clamp(color.rgb + glowColor, 0.0, 1.0);
 
           gl_FragColor = vec4(color.rgb, alpha);
         }
