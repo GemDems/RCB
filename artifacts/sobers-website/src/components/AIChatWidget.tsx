@@ -410,13 +410,13 @@ function InputForm({
                           <div className="flex items-center rounded-full px-2 py-1 gap-1.5 bg-muted/60 border border-border/50 shadow-sm">
                             <div className="flex -space-x-1.5">
                               {[
-                                { src: "https://i.pravatar.cc/150?img=47", fb: "AE" },
-                                { src: "https://i.pravatar.cc/150?img=32", fb: "PD" },
-                                { src: "https://i.pravatar.cc/150?img=12", fb: "HA" },
-                                { src: "https://i.pravatar.cc/150?img=68", fb: "JS" },
+                                { src: "/profile.jpeg", fb: "AE" },
+                                { src: "/profile.jpeg", fb: "PD" },
+                                { src: "/profile.jpeg", fb: "HA" },
+                                { src: "/profile.jpeg", fb: "JS" },
                               ].map((av, j) => (
                                 <Avatar key={j} className="size-5 border-2 border-background">
-                                  <AvatarImage src={av.src} alt={av.fb} className="hover:z-10" />
+                                  <AvatarImage src={av.src} alt={av.fb} className="hover:z-10 object-cover" />
                                   <AvatarFallback className="text-[8px] bg-purple-700 text-white">{av.fb}</AvatarFallback>
                                 </Avatar>
                               ))}
