@@ -71,7 +71,7 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
         <section className="relative max-w-full mx-auto z-1">
           <RetroGrid {...gridOptions} />
           <div className="max-w-screen-xl z-10 mx-auto px-4 py-28 gap-12 md:px-8">
-            <div className="space-y-5 max-w-3xl leading-0 lg:leading-5 mx-auto text-center">
+            <div className="space-y-5 max-w-3xl mx-auto text-center">
 
               {/* Badge — ShinyButton effect, small pill style */}
               <div className="flex justify-center">
