@@ -369,12 +369,8 @@ function InputForm({
               <div className="flex-1 flex justify-end">
                 <StarButton
                   onClick={triggerReset}
-                  lightColor="#a78bfa"
-                  backgroundColor="transparent"
-                  lightWidth={55}
-                  duration={2.5}
-                  borderWidth={1}
-                  className="h-7 px-3 text-xs border border-white/10 bg-background/50 hover:bg-background/80 transition-colors"
+                  lightColor="#FAFAFA"
+                  className="rounded-3xl"
                   title="Start a new conversation"
                   aria-label="New chat"
                 >
