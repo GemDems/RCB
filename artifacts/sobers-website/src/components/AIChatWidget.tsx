@@ -112,8 +112,8 @@ type InputMode = { search: boolean; think: boolean; canvas: boolean }
 ───────────────────────────────────────────── */
 const CHAT_LOGOS = [
   { src: logoAirbnb,      alt: "Airbnb",       height: 48 },
-  { src: logoRightmove,   alt: "Rightmove",    height: 52 },
-  { src: logoBooking,     alt: "Booking.com",  height: 48 },
+  { src: logoRightmove,   alt: "Rightmove",    height: 100 },
+  { src: logoBooking,     alt: "Booking.com",  height: 90 },
   { src: logoZoopla,      alt: "Zoopla",       height: 30 },
   { src: logoKnightFrank, alt: "Knight Frank", height: 46 },
   { src: logoSavills,     alt: "Savills",      height: 44 },
