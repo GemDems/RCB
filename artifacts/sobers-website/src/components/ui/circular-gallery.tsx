@@ -127,6 +127,7 @@ class Media {
   extra: number = 0; widthTotal: number = 0; width: number = 0;
   x: number = 0; scale: number = 1; padding: number = 2;
   speed: number = 0; isBefore: boolean = false; isAfter: boolean = false;
+  mouseX: number = -10; mouseY: number = -10;
 
   constructor({ geometry, gl, image, index, length, renderer, scene, screen, text, viewport, bend, textColor, borderRadius = 0, font }: {
     geometry: Plane; gl: OGLRenderingContext; image: string; index: number;
@@ -163,6 +164,7 @@ class Media {
         precision highp float;
         uniform vec2 uImageSizes; uniform vec2 uPlaneSizes;
         uniform sampler2D tMap; uniform float uBorderRadius;
+        uniform vec2 uMouse; uniform float uGlowIntensity;
         varying vec2 vUv;
         float roundedBoxSDF(vec2 p, vec2 b, float r) {
           vec2 d = abs(p) - b;
@@ -181,6 +183,14 @@ class Media {
           float d = roundedBoxSDF(vUv - 0.5, vec2(0.5 - uBorderRadius), uBorderRadius);
           float edgeSmooth = 0.002;
           float alpha = 1.0 - smoothstep(-edgeSmooth, edgeSmooth, d);
+
+          // Per-card perimeter spotlight glow
+          float edgeDist = min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y));
+          float mouseDist = distance(vUv, uMouse);
+          float glow = smoothstep(0.28, 0.0, mouseDist) * smoothstep(0.10, 0.0, edgeDist) * uGlowIntensity;
+          vec3 glowColor = vec3(0.45, 0.55, 1.0) * glow * 2.5;
+          color.rgb = mix(color.rgb, clamp(color.rgb + glowColor, 0.0, 1.0), glow);
+
           gl_FragColor = vec4(color.rgb, alpha);
         }
       `,
@@ -188,6 +198,7 @@ class Media {
         tMap: { value: texture }, uPlaneSizes: { value: [0, 0] },
         uImageSizes: { value: [0, 0] }, uSpeed: { value: 0 },
         uTime: { value: 100 * Math.random() }, uBorderRadius: { value: this.borderRadius },
+        uMouse: { value: [-10, -10] }, uGlowIntensity: { value: 1.0 },
       },
       transparent: true,
     });
@@ -231,6 +242,7 @@ class Media {
     this.speed = scroll.current - scroll.last;
     this.program.uniforms.uTime.value += 0.04;
     this.program.uniforms.uSpeed.value = this.speed;
+    this.program.uniforms.uMouse.value = [this.mouseX, this.mouseY];
     const planeOffset = this.plane.scale.x / 2;
     const viewportOffset = this.viewport.width / 2;
     this.isBefore = this.plane.position.x + planeOffset < -viewportOffset;
@@ -268,10 +280,12 @@ class App {
   medias!: Media[]; isDown: boolean = false; start: number = 0;
   screen!: { width: number; height: number };
   viewport!: { width: number; height: number }; raf!: number;
+  mouseX: number = -10; mouseY: number = -10;
   boundOnResize!: () => void; boundOnWheel!: (e: WheelEvent) => void;
   boundOnTouchDown!: (e: MouseEvent | TouchEvent) => void;
   boundOnTouchMove!: (e: MouseEvent | TouchEvent) => void;
   boundOnTouchUp!: () => void;
+  boundOnMouseMove!: (e: MouseEvent) => void;
 
   constructor(container: HTMLElement, { items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase }: {
     items?: GalleryItem[]; bend: number; textColor: string;
@@ -365,7 +379,11 @@ class App {
   update() {
     this.scroll.current = lerp(this.scroll.current, this.scroll.target, this.scroll.ease);
     const direction = this.scroll.current > this.scroll.last ? "right" : "left";
-    if (this.medias) this.medias.forEach((media) => media.update(this.scroll, direction));
+    if (this.medias) this.medias.forEach((media) => {
+      media.mouseX = this.mouseX;
+      media.mouseY = this.mouseY;
+      media.update(this.scroll, direction);
+    });
     this.renderer.render({ scene: this.scene, camera: this.camera });
     this.scroll.last = this.scroll.current;
     this.raf = window.requestAnimationFrame(this.update);
