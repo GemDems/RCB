@@ -91,8 +91,6 @@ export function ActiveUsersWidget() {
 
           <NumberTicker
             value={value}
-            blur
-            startOnView
             suffix="+"
             className="relative text-6xl font-black tracking-tight text-white tabular-nums"
             format={(n) => n.toLocaleString()}

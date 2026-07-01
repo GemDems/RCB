@@ -6,7 +6,6 @@ import { ShinyButton } from "@/components/ui/ShinyButton"
 import { LiquidButton } from "@/components/ui/button-1"
 import { HeroSearchBar } from "@/components/ui/HeroSearchBar"
 import { CircularGallery } from "@/components/ui/circular-gallery"
-import { GlowCard } from "@/components/ui/spotlight-card"
 
 interface HeroSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
@@ -72,28 +71,20 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
     ref,
   ) => {
     const containerRef = React.useRef<HTMLDivElement>(null)
+
+    // Track global window scroll — bidirectional: gallery appears on scroll down, disappears on scroll back up
+    const { scrollY } = useScroll()
+    const galleryOpacity = useTransform(scrollY, [0, 120], [0, 1])
+    const galleryY      = useTransform(scrollY, [0, 120], [50, 0])
+    const galleryFilter = useTransform(scrollY, [0, 120], ["blur(20px)", "blur(0px)"])
+
+    // Bg gradient fades out as you scroll
     const { scrollYProgress } = useScroll({
       target: containerRef,
       offset: ["start start", "end start"],
     })
-
-    // Scroll-driven bg gradient fade
     const bgOpacity = useTransform(scrollYProgress, [0, 0.45], [1, 0])
-    const bgScale  = useTransform(scrollYProgress, [0, 0.45], [1, 1.06])
-
-    // Track whether user has started scrolling (to trigger gallery reveal)
-    const [hasScrolled, setHasScrolled] = React.useState(false)
-
-    React.useEffect(() => {
-      const onScroll = () => {
-        if (window.scrollY > 10) {
-          setHasScrolled(true)
-          window.removeEventListener("scroll", onScroll)
-        }
-      }
-      window.addEventListener("scroll", onScroll, { passive: true })
-      return () => window.removeEventListener("scroll", onScroll)
-    }, [])
+    const bgScale   = useTransform(scrollYProgress, [0, 0.45], [1, 1.06])
 
     return (
       <div className={cn("relative", className)} ref={(node) => {
@@ -102,24 +93,12 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
         else if (ref) ref.current = node
       }} {...props}>
 
-        {/* ── Layer 0: Gallery — invisible at load, pops up the instant scrolling starts ── */}
+        {/* ── Layer 0: CircularGallery — invisible at rest, reveals on scroll, fades when back at top ── */}
         <motion.div
-          initial={{ opacity: 0, y: 50, filter: "blur(20px)" }}
-          animate={hasScrolled
-            ? { opacity: 1, y: 0, filter: "blur(0px)" }
-            : { opacity: 0, y: 50, filter: "blur(20px)" }
-          }
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute inset-0 z-[0] pointer-events-none overflow-hidden"
+          style={{ opacity: galleryOpacity, y: galleryY, filter: galleryFilter }}
+          className="absolute inset-0 z-[0] pointer-events-none"
         >
           <CircularGallery bend={3} borderRadius={0.05} scrollEase={0.02} />
-          {/* GlowCard spotlight overlay — tracks cursor for glow effect */}
-          <GlowCard
-            customSize
-            glowColor="purple"
-            className="!absolute !inset-0 !rounded-none !shadow-none !backdrop-blur-none !border-transparent"
-            style={{ background: "transparent" }}
-          />
         </motion.div>
 
         {/* ── Layer 1: Radial gradient overlay ── */}
