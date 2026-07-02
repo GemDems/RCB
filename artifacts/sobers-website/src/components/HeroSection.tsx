@@ -5,7 +5,22 @@ import { ActiveUsersWidget } from "@/components/ActiveUsersWidget"
 import { ShinyButton } from "@/components/ui/ShinyButton"
 import { LiquidButton } from "@/components/ui/button-1"
 import { HeroSearchBar } from "@/components/ui/HeroSearchBar"
-import { CircularGallery } from "@/components/ui/circular-gallery"
+import { CircularGallery, type GalleryItem } from "@/components/ui/circular-gallery"
+import img1 from "@assets/8B754FA9-B539-4EDE-A384-3B5B16B5EEFA_1_102_o_1782968356121.jpeg"
+import img2 from "@assets/F71337D6-6D79-4E12-A266-5B02EDDCB6E7_1_102_o_1782968356123.jpeg"
+import img3 from "@assets/DE8299A5-8F9C-4E2B-94C9-C0CD35770D9B_1_102_o_1782968356124.jpeg"
+import img4 from "@assets/3483E819-621E-4386-B88F-8AB5DF60225B_1_102_o_1782968356124.jpeg"
+import img5 from "@assets/BA8EA8ED-B6CF-425C-B3D6-C1602E194F69_1_102_o_1782968356125.jpeg"
+import img6 from "@assets/BE49C9CB-A303-458C-A523-095C9267C7FA_1_102_o_1782968356125.jpeg"
+
+const galleryItems: GalleryItem[] = [
+  { image: img1, text: "Luxury Penthouse" },
+  { image: img2, text: "Country Retreat" },
+  { image: img3, text: "Modern Villa" },
+  { image: img4, text: "City Residence" },
+  { image: img5, text: "Grand Estate" },
+  { image: img6, text: "Designer Apartment" },
+]
 
 interface HeroSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
@@ -98,7 +113,7 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
           style={{ opacity: galleryOpacity, y: galleryY, filter: galleryFilter }}
           className="absolute inset-0 z-[0] pointer-events-none"
         >
-          <CircularGallery bend={3} borderRadius={0.05} scrollEase={0.02} />
+          <CircularGallery items={galleryItems} bend={3} borderRadius={0.05} scrollEase={0.02} />
         </motion.div>
 
         {/* ── Layer 1: Radial gradient overlay ── */}
