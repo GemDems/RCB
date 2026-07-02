@@ -571,17 +571,10 @@ export default function GetDemoPage() {
                 <motion.div key="listing-contact-fields" exit={{ opacity: 0, filter: "blur(4px)" }}
                   transition={{ duration: 0.3, ease: "easeOut" }} className="w-full space-y-6">
 
-                  {/* ── Listing URL field (mirrors email field exactly) ── */}
-                  <BlurFade delay={authStep === "listing" ? 0.25 * 5 : 0} inView className="w-full">
+                  {/* ── Listing URL field — only shown on the listing step ── */}
+                  {authStep === "listing" && (
+                  <BlurFade delay={0.25 * 5} inView className="w-full">
                     <div className="relative w-full">
-                      <AnimatePresence>
-                        {authStep === "contact" && (
-                          <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-                            transition={{ duration: 0.3, delay: 0.4 }} className="absolute -top-6 left-4 z-10">
-                            <label className="text-xs text-muted-foreground font-semibold">Listing URL</label>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
                       <div className="glass-input-wrap w-full">
                         <div className="glass-input">
                           <span className="glass-input-text-area" />
@@ -643,6 +636,7 @@ export default function GetDemoPage() {
                       </AnimatePresence>
                     </div>
                   </BlurFade>
+                  )}
 
                   {/* ── Contact field (mirrors password field exactly) ── */}
                   <AnimatePresence>
