@@ -14,12 +14,12 @@ import img5 from "@assets/BA8EA8ED-B6CF-425C-B3D6-C1602E194F69_1_102_o_178296835
 import img6 from "@assets/BE49C9CB-A303-458C-A523-095C9267C7FA_1_102_o_1782968356125.jpeg"
 
 const galleryItems: GalleryItem[] = [
-  { image: img1, text: "Luxury Penthouse" },
-  { image: img2, text: "Country Retreat" },
-  { image: img3, text: "Modern Villa" },
-  { image: img4, text: "City Residence" },
-  { image: img5, text: "Grand Estate" },
-  { image: img6, text: "Designer Apartment" },
+  { image: img1, video: "/videos/walk1.mov", text: "Luxury Penthouse" },
+  { image: img2, video: "/videos/walk2.mov", text: "Country Retreat" },
+  { image: img3, video: "/videos/walk3.mov", text: "Modern Villa" },
+  { image: img4, video: "/videos/walk1.mov", text: "City Residence" },
+  { image: img5, video: "/videos/walk2.mov", text: "Grand Estate" },
+  { image: img6, video: "/videos/walk3.mov", text: "Designer Apartment" },
 ]
 
 interface HeroSectionProps extends React.HTMLAttributes<HTMLDivElement> {

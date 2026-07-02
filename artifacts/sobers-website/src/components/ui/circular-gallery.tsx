@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 
 export interface GalleryItem {
   image: string;
+  video?: string;
   text: string;
 }
 
@@ -118,7 +119,7 @@ class Title {
 }
 
 class Media {
-  gl: OGLRenderingContext; geometry: Plane; image: string; index: number;
+  gl: OGLRenderingContext; geometry: Plane; image: string; video?: string; index: number;
   length: number; renderer: Renderer; scene: Transform;
   screen: { width: number; height: number }; text: string;
   viewport: { width: number; height: number }; bend: number;
@@ -128,15 +129,16 @@ class Media {
   x: number = 0; scale: number = 1; padding: number = 2;
   speed: number = 0; isBefore: boolean = false; isAfter: boolean = false;
   mouseX: number = -10; mouseY: number = -10;
+  videoEl?: HTMLVideoElement; texture?: Texture;
 
-  constructor({ geometry, gl, image, index, length, renderer, scene, screen, text, viewport, bend, textColor, borderRadius = 0, font }: {
-    geometry: Plane; gl: OGLRenderingContext; image: string; index: number;
+  constructor({ geometry, gl, image, video, index, length, renderer, scene, screen, text, viewport, bend, textColor, borderRadius = 0, font }: {
+    geometry: Plane; gl: OGLRenderingContext; image: string; video?: string; index: number;
     length: number; renderer: Renderer; scene: Transform;
     screen: { width: number; height: number }; text: string;
     viewport: { width: number; height: number }; bend: number;
     textColor: string; borderRadius: number; font: string;
   }) {
-    this.geometry = geometry; this.gl = gl; this.image = image;
+    this.geometry = geometry; this.gl = gl; this.image = image; this.video = video;
     this.index = index; this.length = length; this.renderer = renderer;
     this.scene = scene; this.screen = screen; this.text = text;
     this.viewport = viewport; this.bend = bend; this.textColor = textColor;
@@ -145,7 +147,9 @@ class Media {
   }
 
   createShader() {
-    const texture = new Texture(this.gl, { generateMipmaps: true });
+    const isVideo = !!this.video;
+    const texture = new Texture(this.gl, { generateMipmaps: !isVideo });
+    this.texture = texture;
     this.program = new Program(this.gl, {
       depthTest: false, depthWrite: false,
       vertex: `
@@ -202,13 +206,29 @@ class Media {
       },
       transparent: true,
     });
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.src = this.image;
-    img.onload = () => {
-      texture.image = img;
-      this.program.uniforms.uImageSizes.value = [img.naturalWidth, img.naturalHeight];
-    };
+    if (isVideo) {
+      const vid = document.createElement("video");
+      vid.src = this.video!;
+      vid.autoplay = true;
+      vid.muted = true;
+      vid.loop = true;
+      vid.playsInline = true;
+      vid.crossOrigin = "anonymous";
+      vid.play().catch(() => {});
+      this.videoEl = vid;
+      vid.addEventListener("loadeddata", () => {
+        texture.image = vid;
+        this.program.uniforms.uImageSizes.value = [vid.videoWidth || 1920, vid.videoHeight || 1080];
+      });
+    } else {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = this.image;
+      img.onload = () => {
+        texture.image = img;
+        this.program.uniforms.uImageSizes.value = [img.naturalWidth, img.naturalHeight];
+      };
+    }
   }
 
   createMesh() {
@@ -242,6 +262,9 @@ class Media {
     this.speed = scroll.current - scroll.last;
     this.program.uniforms.uTime.value += 0.04;
     this.program.uniforms.uSpeed.value = this.speed;
+    if (this.videoEl && this.texture && this.videoEl.readyState >= 2) {
+      this.texture.needsUpdate = true;
+    }
     // Project canvas-relative mouse (0–1) into this plane's UV space
     const ndcMouseX = this.mouseX * 2 - 1;
     const ndcMouseY = -(this.mouseY * 2 - 1);
@@ -338,6 +361,7 @@ class App {
     this.mediasImages = [...galleryItems, ...galleryItems];
     this.medias = this.mediasImages.map((data, index) => new Media({
       geometry: this.planeGeometry, gl: this.gl, image: data.image,
+      video: data.video,
       index, length: this.mediasImages.length, renderer: this.renderer,
       scene: this.scene, screen: this.screen, text: data.text,
       viewport: this.viewport, bend, textColor, borderRadius, font,
