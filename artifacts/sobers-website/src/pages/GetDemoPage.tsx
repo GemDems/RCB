@@ -16,6 +16,7 @@ import {
   type Variants, type Transition,
 } from "motion/react";
 import { useLocation } from "wouter";
+import { Admonition } from "@/components/ui/admonition";
 import type {
   GlobalOptions as ConfettiGlobalOptions,
   CreateTypes as ConfettiInstance,
@@ -338,6 +339,19 @@ function saveContactOnDevice(email: string, phone: string) {
   } catch { /* ignore storage errors */ }
 }
 
+// ─── Per-device submission count ─────────────────────────────────────────────
+const STORAGE_SUBMISSIONS = "sobers_submission_count";
+const MAX_SUBMISSIONS = 3;
+
+function getSubmissionCount(): number {
+  try { return parseInt(localStorage.getItem(STORAGE_SUBMISSIONS) ?? "0", 10) || 0; }
+  catch { return 0; }
+}
+function incrementSubmissionCount(): void {
+  try { localStorage.setItem(STORAGE_SUBMISSIONS, String(getSubmissionCount() + 1)); }
+  catch { /* ignore */ }
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function GetDemoPage() {
   const [, navigate] = useLocation();
@@ -362,6 +376,9 @@ export default function GetDemoPage() {
   // per-device duplicate tracking
   const [contactDuplicateError, setContactDuplicateError] = useState<null | "email" | "phone" | "both">(null);
 
+  // per-device submission limit
+  const [isDeviceBlocked, setIsDeviceBlocked] = useState(false);
+
   const confettiRef  = useRef<ConfettiRef>(null);
   const emailRef     = useRef<HTMLInputElement>(null);
   const phoneRef     = useRef<HTMLInputElement>(null);
@@ -374,6 +391,11 @@ export default function GetDemoPage() {
       .then((r) => r.json())
       .then((data: { domains: string[] }) => setAllowedDomains(data.domains))
       .catch(() => {}); // silent — stays permissive if fetch fails
+  }, []);
+
+  // check device submission limit on mount
+  useEffect(() => {
+    if (getSubmissionCount() >= MAX_SUBMISSIONS) setIsDeviceBlocked(true);
   }, []);
 
   // validation
@@ -418,7 +440,10 @@ export default function GetDemoPage() {
     setTimeout(() => {
       fireSideCanons();
       setModalStatus("success");
+      incrementSubmissionCount();
       submitPromise.then((succeeded) => { if (succeeded) saveContactOnDevice(email, phone); });
+      // Auto-redirect home after brief success display
+      setTimeout(() => navigate("/"), 2500);
     }, loadingDuration);
   };
 
@@ -550,6 +575,24 @@ export default function GetDemoPage() {
 
         <fieldset disabled={modalStatus !== "closed"}
           className="relative z-10 flex flex-col items-center gap-8 w-[280px] mx-auto p-4">
+
+          {/* ── Device limit block ── */}
+          {isDeviceBlocked ? (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+              className="w-full flex flex-col items-center gap-6 text-center">
+              <div className="text-center">
+                <p className="font-serif font-light text-4xl tracking-tight text-foreground">Claim your</p>
+                <p className="font-serif font-light text-4xl tracking-tight text-foreground">free 3D demo</p>
+              </div>
+              <Admonition type="danger" title="Request limit reached" className="w-full text-left">
+                This device has already submitted the maximum number of free demo requests. Please contact us directly if you need further assistance.
+              </Admonition>
+              <button onClick={() => navigate("/")}
+                className="flex items-center gap-1.5 text-sm text-violet-400 hover:text-violet-300 transition-colors font-medium">
+                <ArrowLeft className="w-4 h-4" /> Back to site
+              </button>
+            </motion.div>
+          ) : (<>
 
           {/* ── Step headings — exact AnimatePresence/motion replica ── */}
           <AnimatePresence mode="wait">
@@ -838,6 +881,7 @@ export default function GetDemoPage() {
               )}
             </AnimatePresence>
           </form>
+          </>)}
         </fieldset>
       </div>
     </div>
