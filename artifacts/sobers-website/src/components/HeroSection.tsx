@@ -17,9 +17,6 @@ const galleryItems: GalleryItem[] = [
   { image: img1, video: "/videos/walk1.mov", text: "Luxury Penthouse" },
   { image: img2, video: "/videos/walk2.mov", text: "Country Retreat" },
   { image: img3, video: "/videos/walk3.mov", text: "Modern Villa" },
-  { image: img4, video: "/videos/walk1.mov", text: "City Residence" },
-  { image: img5, video: "/videos/walk2.mov", text: "Grand Estate" },
-  { image: img6, video: "/videos/walk3.mov", text: "Designer Apartment" },
 ]
 
 interface HeroSectionProps extends React.HTMLAttributes<HTMLDivElement> {

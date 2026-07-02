@@ -129,16 +129,17 @@ class Media {
   x: number = 0; scale: number = 1; padding: number = 2;
   speed: number = 0; isBefore: boolean = false; isAfter: boolean = false;
   mouseX: number = -10; mouseY: number = -10;
-  videoEl?: HTMLVideoElement; texture?: Texture;
+  videoEl?: HTMLVideoElement; texture?: Texture; lastVideoTime: number = -1;
 
-  constructor({ geometry, gl, image, video, index, length, renderer, scene, screen, text, viewport, bend, textColor, borderRadius = 0, font }: {
-    geometry: Plane; gl: OGLRenderingContext; image: string; video?: string; index: number;
+  constructor({ geometry, gl, image, video, videoEl, index, length, renderer, scene, screen, text, viewport, bend, textColor, borderRadius = 0, font }: {
+    geometry: Plane; gl: OGLRenderingContext; image: string; video?: string; videoEl?: HTMLVideoElement; index: number;
     length: number; renderer: Renderer; scene: Transform;
     screen: { width: number; height: number }; text: string;
     viewport: { width: number; height: number }; bend: number;
     textColor: string; borderRadius: number; font: string;
   }) {
     this.geometry = geometry; this.gl = gl; this.image = image; this.video = video;
+    if (videoEl) this.videoEl = videoEl;
     this.index = index; this.length = length; this.renderer = renderer;
     this.scene = scene; this.screen = screen; this.text = text;
     this.viewport = viewport; this.bend = bend; this.textColor = textColor;
@@ -207,19 +208,27 @@ class Media {
       transparent: true,
     });
     if (isVideo) {
-      const vid = document.createElement("video");
-      vid.src = this.video!;
-      vid.autoplay = true;
-      vid.muted = true;
-      vid.loop = true;
-      vid.playsInline = true;
-      vid.crossOrigin = "anonymous";
-      vid.play().catch(() => {});
-      this.videoEl = vid;
-      vid.addEventListener("loadeddata", () => {
+      const vid = this.videoEl ?? (() => {
+        const v = document.createElement("video");
+        v.src = this.video!;
+        v.autoplay = true;
+        v.muted = true;
+        v.loop = true;
+        v.playsInline = true;
+        v.crossOrigin = "anonymous";
+        v.play().catch(() => {});
+        this.videoEl = v;
+        return v;
+      })();
+      if (vid.readyState >= 2) {
         texture.image = vid;
         this.program.uniforms.uImageSizes.value = [vid.videoWidth || 1920, vid.videoHeight || 1080];
-      });
+      } else {
+        vid.addEventListener("loadeddata", () => {
+          texture.image = vid;
+          this.program.uniforms.uImageSizes.value = [vid.videoWidth || 1920, vid.videoHeight || 1080];
+        }, { once: true });
+      }
     } else {
       const img = new Image();
       img.crossOrigin = "anonymous";
@@ -263,7 +272,11 @@ class Media {
     this.program.uniforms.uTime.value += 0.04;
     this.program.uniforms.uSpeed.value = this.speed;
     if (this.videoEl && this.texture && this.videoEl.readyState >= 2) {
-      this.texture.needsUpdate = true;
+      const t = this.videoEl.currentTime;
+      if (t !== this.lastVideoTime) {
+        this.lastVideoTime = t;
+        this.texture.needsUpdate = true;
+      }
     }
     // Project canvas-relative mouse (0–1) into this plane's UV space
     const ndcMouseX = this.mouseX * 2 - 1;
@@ -359,9 +372,24 @@ class App {
     ];
     const galleryItems = items && items.length > 0 ? items : defaultItems;
     this.mediasImages = [...galleryItems, ...galleryItems];
+    const videoCache = new Map<string, HTMLVideoElement>();
+    galleryItems.forEach(data => {
+      if (data.video && !videoCache.has(data.video)) {
+        const v = document.createElement("video");
+        v.src = data.video;
+        v.autoplay = true;
+        v.muted = true;
+        v.loop = true;
+        v.playsInline = true;
+        v.crossOrigin = "anonymous";
+        v.play().catch(() => {});
+        videoCache.set(data.video, v);
+      }
+    });
     this.medias = this.mediasImages.map((data, index) => new Media({
       geometry: this.planeGeometry, gl: this.gl, image: data.image,
       video: data.video,
+      videoEl: data.video ? videoCache.get(data.video) : undefined,
       index, length: this.mediasImages.length, renderer: this.renderer,
       scene: this.scene, screen: this.screen, text: data.text,
       viewport: this.viewport, bend, textColor, borderRadius, font,
