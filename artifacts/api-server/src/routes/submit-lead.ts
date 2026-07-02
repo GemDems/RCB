@@ -17,6 +17,17 @@ function isAllowedListingDomain(url: string): boolean {
   }
 }
 
+function isSpecificListing(url: string): boolean {
+  try {
+    const normalized = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    const { pathname } = new URL(normalized);
+    const segments = pathname.split("/").filter((s) => s.length >= 3);
+    return segments.length >= 1;
+  } catch {
+    return false;
+  }
+}
+
 router.post("/submit-lead", async (req, res) => {
   const { listingUrl, email, phone, name } = req.body as {
     listingUrl?: string;
@@ -31,6 +42,10 @@ router.post("/submit-lead", async (req, res) => {
 
   if (!isAllowedListingDomain(listingUrl)) {
     return res.status(400).json({ error: "Listing URL must be from a recognised property listing site." });
+  }
+
+  if (!isSpecificListing(listingUrl)) {
+    return res.status(400).json({ error: "Please paste the full link to a specific listing, not just the site homepage." });
   }
 
   const notifyEmail = process.env.NOTIFY_EMAIL;

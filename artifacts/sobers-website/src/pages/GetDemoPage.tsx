@@ -250,6 +250,20 @@ function isDomainAllowed(url: string, allowedDomains: string[]): boolean {
   }
 }
 
+// ─── Specific listing check (not just a bare domain) ─────────────────────────
+function isSpecificListing(url: string): boolean {
+  if (!url || url.trim().length < 5) return false;
+  try {
+    const normalized = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    const { pathname } = new URL(normalized);
+    // Must have a path beyond root with at least one segment that's 3+ chars
+    const segments = pathname.split("/").filter((s) => s.length >= 3);
+    return segments.length >= 1;
+  } catch {
+    return false;
+  }
+}
+
 // ─── Animated typewriter placeholder ─────────────────────────────────────────
 const LISTING_EXAMPLES = [
   "zillow.com/homedetails/95-Oak-St-Denver-CO/12345678_zpid",
@@ -400,7 +414,8 @@ export default function GetDemoPage() {
 
   // validation
   const isDomainOk      = isDomainAllowed(listingUrl, allowedDomains);
-  const isListingValid  = listingUrl.trim().length >= 5 && isDomainOk;
+  const isPathOk        = isSpecificListing(listingUrl);
+  const isListingValid  = listingUrl.trim().length >= 5 && isDomainOk && isPathOk;
   const isContactValid  = email.trim().length >= 5 && phone.trim().length >= 7;
   const isNameValid     = name.trim().length >= 2;
 
@@ -717,9 +732,9 @@ export default function GetDemoPage() {
                           </div>
                         </div>
                       </div>
-                      {/* Domain validation error */}
+                      {/* Domain / specificity validation error */}
                       <AnimatePresence>
-                        {listingSubmitAttempted && listingUrl.trim().length >= 5 && !isDomainOk && (
+                        {listingSubmitAttempted && listingUrl.trim().length >= 5 && (!isDomainOk || !isPathOk) && (
                           <motion.p
                             key="domain-error"
                             initial={{ opacity: 0, y: -4 }}
@@ -728,7 +743,9 @@ export default function GetDemoPage() {
                             transition={{ duration: 0.2 }}
                             className="mt-2 px-4 text-xs text-red-400"
                           >
-                            Please paste a link from a property listing site (e.g. Airbnb, Zillow, Rightmove).
+                            {!isDomainOk
+                              ? "Please paste a link from a property listing site (e.g. Airbnb, Zillow, Rightmove)."
+                              : "Please paste the full link to a specific listing — not just the site homepage."}
                           </motion.p>
                         )}
                       </AnimatePresence>
