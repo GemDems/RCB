@@ -5,7 +5,7 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { Square, X, Globe, BrainCog } from "lucide-react"
 import SendButton from "@/components/ui/send-button"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
