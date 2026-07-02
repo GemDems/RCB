@@ -1,5 +1,5 @@
 import * as React from "react"
-import { motion, useScroll, useTransform } from "motion/react"
+import { motion, useScroll, useTransform, useMotionTemplate } from "motion/react"
 import { cn } from "@/lib/utils"
 import { ActiveUsersWidget } from "@/components/ActiveUsersWidget"
 import { ShinyButton } from "@/components/ui/ShinyButton"
@@ -90,6 +90,9 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
     const galleryY      = useTransform(scrollY, [0, 120], [50, 0])
     const galleryFilter = useTransform(scrollY, [0, 120], ["blur(20px)", "blur(0px)"])
 
+    // Scroll-linked text shadow — blooms in with the gallery, fades on scroll back up
+    const shadowFilter = useMotionTemplate`drop-shadow(0 2px 18px rgba(0,0,0,${galleryOpacity})) drop-shadow(0 0 48px rgba(0,0,0,${galleryOpacity}))`
+
     // Bg gradient fades out as you scroll
     const { scrollYProgress } = useScroll({
       target: containerRef,
@@ -135,12 +138,15 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
                 </LiquidButton>
               </div>
 
-              <h2 className="text-3xl tracking-tighter mx-auto md:text-6xl text-white font-black">
+              <motion.h2
+                className="text-3xl tracking-tighter mx-auto md:text-6xl text-white font-black"
+                style={{ filter: shadowFilter }}
+              >
                 {subtitle.regular}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-orange-200">
                   {subtitle.gradient}
                 </span>
-              </h2>
+              </motion.h2>
 
               <p className="max-w-2xl mx-auto text-gray-300">
                 {description}
