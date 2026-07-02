@@ -1,3 +1,4 @@
+// --- Component ---
 import React from "react"
 import {
   AlertCircle,
@@ -108,4 +109,19 @@ export function Admonition({
   )
 }
 
-export default Admonition
+
+export default Admonition;
+
+// --- Demo ---
+import Admonition from "@/components/ui/admonition"
+
+export function Component() {
+  return (
+    <Admonition type="warning" title="Important Notice">
+      This is an important message that users should pay attention to.
+    </Admonition>
+  )
+}
+
+
+export default Component;

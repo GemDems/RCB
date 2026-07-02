@@ -341,7 +341,7 @@ function saveContactOnDevice(email: string, phone: string) {
 
 // ─── Per-device submission count ─────────────────────────────────────────────
 const STORAGE_SUBMISSIONS = "sobers_submission_count";
-const MAX_SUBMISSIONS = 3;
+const MAX_SUBMISSIONS = 4;
 
 function getSubmissionCount(): number {
   try { return parseInt(localStorage.getItem(STORAGE_SUBMISSIONS) ?? "0", 10) || 0; }
