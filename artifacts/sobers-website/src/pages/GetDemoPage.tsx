@@ -302,6 +302,42 @@ function useTypewriter(examples: string[], active: boolean): string {
   return display;
 }
 
+// ─── Per-device contact deduplication ────────────────────────────────────────
+// Hashes stored in localStorage — never raw PII.
+const STORAGE_EMAILS = "sobers_used_email_hashes";
+const STORAGE_PHONES = "sobers_used_phone_hashes";
+
+/** djb2-xor hash — deterministic, non-reversible, synchronous. */
+function djb2(s: string): string {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h) ^ s.charCodeAt(i);
+  return (h >>> 0).toString(36);
+}
+function hashEmail(e: string) { return djb2(e.trim().toLowerCase()); }
+function hashPhone(p: string) { return djb2(p.replace(/\D/g, "")); }
+
+function checkUsedOnDevice(email: string, phone: string) {
+  try {
+    const emails: string[] = JSON.parse(localStorage.getItem(STORAGE_EMAILS) ?? "[]");
+    const phones: string[] = JSON.parse(localStorage.getItem(STORAGE_PHONES) ?? "[]");
+    return {
+      emailUsed: emails.includes(hashEmail(email)),
+      phoneUsed: phones.includes(hashPhone(phone)),
+    };
+  } catch { return { emailUsed: false, phoneUsed: false }; }
+}
+
+function saveContactOnDevice(email: string, phone: string) {
+  try {
+    const emails: string[] = JSON.parse(localStorage.getItem(STORAGE_EMAILS) ?? "[]");
+    const phones: string[] = JSON.parse(localStorage.getItem(STORAGE_PHONES) ?? "[]");
+    const he = hashEmail(email); if (!emails.includes(he)) emails.push(he);
+    const hp = hashPhone(phone); if (!phones.includes(hp)) phones.push(hp);
+    localStorage.setItem(STORAGE_EMAILS, JSON.stringify(emails));
+    localStorage.setItem(STORAGE_PHONES, JSON.stringify(phones));
+  } catch { /* ignore storage errors */ }
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function GetDemoPage() {
   const [, navigate] = useLocation();
@@ -322,6 +358,9 @@ export default function GetDemoPage() {
 
   // only show listing domain error after the user attempts to continue
   const [listingSubmitAttempted, setListingSubmitAttempted] = useState(false);
+
+  // per-device duplicate tracking
+  const [contactDuplicateError, setContactDuplicateError] = useState<null | "email" | "phone" | "both">(null);
 
   const confettiRef  = useRef<ConfettiRef>(null);
   const emailRef     = useRef<HTMLInputElement>(null);
@@ -365,16 +404,21 @@ export default function GetDemoPage() {
     setModalStatus("loading");
     const loadingDuration = (modalSteps.length - 1) * TEXT_LOOP_INTERVAL * 1000;
 
-    // Fire API call in the background; show optimistic success after animation
-    fetch(`${API_BASE}/api/submit-lead`, {
+    // Track fetch result separately from the optimistic UX timer
+    const submitPromise = fetch(`${API_BASE}/api/submit-lead`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ listingUrl, email, phone, name }),
-    }).catch(() => {/* silent — UX already succeeded */});
+    })
+      .then((r) => r.json())
+      .then((d: { success?: boolean }) => d.success === true)
+      .catch(() => false);
 
+    // Show success animation after loading; only persist dedupe state if API confirmed OK
     setTimeout(() => {
       fireSideCanons();
       setModalStatus("success");
+      submitPromise.then((succeeded) => { if (succeeded) saveContactOnDevice(email, phone); });
     }, loadingDuration);
   };
 
@@ -383,6 +427,12 @@ export default function GetDemoPage() {
       if (isListingValid) setAuthStep("contact");
       else setListingSubmitAttempted(true);
     } else if (authStep === "contact" && isContactValid) {
+      const { emailUsed, phoneUsed } = checkUsedOnDevice(email, phone);
+      if (emailUsed || phoneUsed) {
+        setContactDuplicateError(emailUsed && phoneUsed ? "both" : emailUsed ? "email" : "phone");
+        return;
+      }
+      setContactDuplicateError(null);
       setAuthStep("name");
     }
   };
@@ -393,7 +443,7 @@ export default function GetDemoPage() {
 
   const handleGoBack = () => {
     if (authStep === "name")    { setAuthStep("contact"); setName(""); }
-    else if (authStep === "contact") { setAuthStep("listing"); setEmail(""); setPhone(""); }
+    else if (authStep === "contact") { setAuthStep("listing"); setEmail(""); setPhone(""); setContactDuplicateError(null); }
   };
 
   const closeModal = () => { setModalStatus("closed"); setModalErrorMessage(""); };
@@ -403,6 +453,9 @@ export default function GetDemoPage() {
     if (authStep === "contact") setTimeout(() => emailRef.current?.focus(), 500);
     else if (authStep === "name") setTimeout(() => nameRef.current?.focus(), 500);
   }, [authStep]);
+
+  // clear duplicate error whenever the user edits either contact field
+  useEffect(() => { setContactDuplicateError(null); }, [email, phone]);
 
   // ─── Modal (exact replica) ────────────────────────────────────────────────
   const Modal = () => (
@@ -704,6 +757,26 @@ export default function GetDemoPage() {
                               </div>
                             </div>
                           </div>
+
+                          {/* Per-device duplicate error */}
+                          <AnimatePresence>
+                            {contactDuplicateError && (
+                              <motion.p
+                                key="contact-dup-error"
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -4 }}
+                                transition={{ duration: 0.2 }}
+                                className="px-4 text-xs text-red-400"
+                              >
+                                {contactDuplicateError === "both"
+                                  ? "This email and phone have already been used on this device."
+                                  : contactDuplicateError === "email"
+                                  ? "This email has already been used on this device."
+                                  : "This phone number has already been used on this device."}
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
 
                           <BlurFade inView delay={0.2}>
                             <button type="button" onClick={handleGoBack}
