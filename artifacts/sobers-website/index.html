@@ -20,5 +20,35 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      (function () {
+        var hoverKey = '_sob_href';
+        document.addEventListener('mouseover', function (e) {
+          var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+          if (!a || a[hoverKey]) return;
+          var real = a.getAttribute('href');
+          if (!real || real === '#' || real.startsWith('javascript')) return;
+          a[hoverKey] = real;
+          a.setAttribute('href', '#');
+        }, true);
+        document.addEventListener('mouseout', function (e) {
+          var a = e.target && e.target.closest ? e.target.closest('a') : null;
+          if (!a || !a[hoverKey]) return;
+          a.setAttribute('href', a[hoverKey]);
+          delete a[hoverKey];
+        }, true);
+        document.addEventListener('click', function (e) {
+          var a = e.target && e.target.closest ? e.target.closest('a') : null;
+          if (!a || !a[hoverKey]) return;
+          var dest = a[hoverKey];
+          delete a[hoverKey];
+          a.setAttribute('href', dest);
+          if (a.target === '_blank') {
+            e.preventDefault();
+            window.open(dest, '_blank', 'noopener,noreferrer');
+          }
+        }, true);
+      })();
+    </script>
   </body>
 </html>
