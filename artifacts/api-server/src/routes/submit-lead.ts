@@ -46,7 +46,7 @@ router.post("/submit-lead", async (req, res) => {
     const resend = new Resend(resendKey);
 
     await resend.emails.send({
-      from: "leads@resend.dev",
+      from: "onboarding@resend.dev",
       to: notifyEmail,
       subject: `🏠 New 3D Demo Request from ${name}`,
       html: `
