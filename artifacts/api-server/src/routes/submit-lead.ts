@@ -18,13 +18,14 @@ function isAllowedListingDomain(url: string): boolean {
 }
 
 router.post("/submit-lead", async (req, res) => {
-  const { listingUrl, contact, name } = req.body as {
+  const { listingUrl, email, phone, name } = req.body as {
     listingUrl?: string;
-    contact?: string;
+    email?: string;
+    phone?: string;
     name?: string;
   };
 
-  if (!listingUrl || !contact || !name) {
+  if (!listingUrl || !email || !phone || !name) {
     return res.status(400).json({ error: "Missing required fields." });
   }
 
@@ -59,8 +60,12 @@ router.post("/submit-lead", async (req, res) => {
               <td style="padding:8px 0;font-weight:600;font-size:14px;">${name}</td>
             </tr>
             <tr>
-              <td style="padding:8px 0;color:#9ca3af;font-size:14px;">Contact</td>
-              <td style="padding:8px 0;font-weight:600;font-size:14px;">${contact}</td>
+              <td style="padding:8px 0;color:#9ca3af;font-size:14px;">Email</td>
+              <td style="padding:8px 0;font-weight:600;font-size:14px;">${email}</td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0;color:#9ca3af;font-size:14px;">Phone</td>
+              <td style="padding:8px 0;font-weight:600;font-size:14px;">${phone}</td>
             </tr>
             <tr>
               <td style="padding:8px 0;color:#9ca3af;font-size:14px;">Listing URL</td>
