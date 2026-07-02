@@ -47,7 +47,3 @@ channel = "stable-25_05"
 
 [userenv.shared]
 NOTIFY_EMAIL = "demeyesusgabriel@gmail.com"
-
-[[ports]]
-localPort = 5000
-externalPort = 80
