@@ -113,11 +113,22 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
           <CircularGallery items={galleryItems} bend={3} borderRadius={0.05} scrollEase={0.02} />
         </motion.div>
 
-        {/* ── Layer 1: Radial gradient overlay ── */}
+        {/* ── Layer 1: Radial gradient overlay (fades out on scroll) ── */}
         <motion.div
           style={{ opacity: bgOpacity, scale: bgScale }}
           className="absolute top-0 z-[1] h-screen w-screen bg-[radial-gradient(ellipse_20%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] pointer-events-none"
         />
+
+        {/* ── Layer 1b: Text-contrast scrim — fades IN with gallery to protect readability ── */}
+        <motion.div
+          style={{ opacity: galleryOpacity }}
+          className="absolute inset-0 z-[1] pointer-events-none"
+        >
+          {/* Dark ellipse centred on the headline */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_55%_at_50%_42%,rgba(0,0,0,0.72),transparent)]" />
+          {/* Thin bottom-up gradient so lower text also stays readable */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+        </motion.div>
 
         {/* ── Layer 2: All hero content ── */}
         <section className="relative max-w-full mx-auto z-[2]">
@@ -135,7 +146,10 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
                 </LiquidButton>
               </div>
 
-              <h2 className="text-3xl tracking-tighter mx-auto md:text-6xl text-white font-black">
+              <h2
+                className="text-3xl tracking-tighter mx-auto md:text-6xl text-white font-black"
+                style={{ filter: "drop-shadow(0 2px 20px rgba(0,0,0,1)) drop-shadow(0 1px 6px rgba(0,0,0,0.9)) drop-shadow(0 0 40px rgba(0,0,0,0.6))" }}
+              >
                 {subtitle.regular}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-orange-200">
                   {subtitle.gradient}
