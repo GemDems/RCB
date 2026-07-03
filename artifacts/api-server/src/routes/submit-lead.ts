@@ -126,7 +126,7 @@ router.post("/submit-lead", leadLimiter, async (req, res) => {
             </tr>
           </table>
           <hr style="border:none;border-top:1px solid #2a2a2a;margin:20px 0;" />
-          <p style="font-size:12px;color:#6b7280;margin:0;">Sent from your 3D demo landing page</p>
+          <p style="font-size:12px;color:#6b7280;margin:0;">Sent from 3D Tours Pro</p>
         </div>
       `,
     });

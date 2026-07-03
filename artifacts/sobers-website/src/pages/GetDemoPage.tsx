@@ -319,8 +319,8 @@ function useTypewriter(examples: string[], active: boolean): string {
 
 // ─── Per-device contact deduplication ────────────────────────────────────────
 // Hashes stored in localStorage — never raw PII.
-const STORAGE_EMAILS = "sobers_used_email_hashes";
-const STORAGE_PHONES = "sobers_used_phone_hashes";
+const STORAGE_EMAILS = "3dtourspro_used_email_hashes";
+const STORAGE_PHONES = "3dtourspro_used_phone_hashes";
 
 /** djb2-xor hash — deterministic, non-reversible, synchronous. */
 function djb2(s: string): string {
@@ -354,7 +354,7 @@ function saveContactOnDevice(email: string, phone: string) {
 }
 
 // ─── Per-device submission count ─────────────────────────────────────────────
-const STORAGE_SUBMISSIONS = "sobers_submission_count";
+const STORAGE_SUBMISSIONS = "3dtourspro_submission_count";
 const MAX_SUBMISSIONS = 4;
 
 function getSubmissionCount(): number {
@@ -569,7 +569,7 @@ export default function GetDemoPage() {
       {/* ── Top bar — exact replica position ── */}
       {/* ── Top bar ── */}
       <div className={cn("fixed top-4 left-4 z-20 flex items-center gap-2", "md:left-1/2 md:-translate-x-1/2")}>
-        <h1 className="text-base font-bold text-foreground">3D Property Demo</h1>
+        <h1 className="text-base font-bold text-foreground">3D Tours Pro</h1>
       </div>
 
       {/* ── Back button top-left on mobile, doesn't conflict with centered logo ── */}
