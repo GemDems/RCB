@@ -581,15 +581,15 @@ export default function GetDemoPage() {
       </div>
 
       {/* ── Main area — exact replica structure ── */}
-      <div className={cn("flex w-full flex-1 h-full items-center justify-center", "relative overflow-hidden")} style={{ background: "#0d0117" }}>
-        <div className="absolute inset-0 z-0"><GradientBackground /></div>
+      <div className={cn("flex w-full flex-1 min-h-full items-center justify-center", "relative")} style={{ background: "#0d0117" }}>
+        <div className="fixed inset-0 z-0"><GradientBackground /></div>
         {/* Nebula shader — screen-blended on top of SVG gradient at low opacity */}
-        <div className="absolute inset-0 z-[1] pointer-events-none" style={{ opacity: 0.45, mixBlendMode: "screen" }}>
+        <div className="fixed inset-0 z-[1] pointer-events-none" style={{ opacity: 0.45, mixBlendMode: "screen" }}>
           <InteractiveNebulaShader />
         </div>
 
         <fieldset disabled={modalStatus !== "closed"}
-          className="relative z-10 flex flex-col items-center gap-8 w-[280px] mx-auto p-4">
+          className="relative z-10 flex flex-col items-center gap-8 w-[280px] mx-auto px-4 py-24">
 
           {/* ── Device limit block ── */}
           {isDeviceBlocked ? (
