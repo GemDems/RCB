@@ -28,7 +28,34 @@ app.use(
     },
   }),
 );
-app.use(cors());
+
+// Restrict CORS to known Replit origins. In production the frontend is served
+// from the same domain, so cross-origin requests should only come from the
+// Replit dev-preview domain during development.
+const allowedOrigins = new Set<string>(
+  [
+    process.env["REPLIT_DEV_DOMAIN"]
+      ? `https://${process.env["REPLIT_DEV_DOMAIN"]}`
+      : null,
+    ...(process.env["REPLIT_DOMAINS"]?.split(",").map((d) => `https://${d.trim()}`) ?? []),
+  ].filter(Boolean) as string[],
+);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      // Allow same-origin requests (no Origin header) and requests from the Vite
+      // dev proxy (which also sends no Origin). Only block explicit cross-origin
+      // requests from unknown hosts.
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: origin "${origin}" not allowed`));
+      }
+    },
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

@@ -1,8 +1,18 @@
 import { Router } from "express";
+import { rateLimit } from "express-rate-limit";
 import { Resend } from "resend";
 import { ALLOWED_DOMAINS } from "../lib/allowed-domains-list";
 
 const router = Router();
+
+// Rate-limit: 5 submissions per IP per 15 minutes to prevent email/cost abuse
+const leadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { error: "Too many requests — please wait a moment and try again." },
+});
 
 function isAllowedListingDomain(url: string): boolean {
   try {
@@ -28,16 +38,44 @@ function isSpecificListing(url: string): boolean {
   }
 }
 
-router.post("/submit-lead", async (req, res) => {
-  const { listingUrl, email, phone, name } = req.body as {
-    listingUrl?: string;
-    email?: string;
-    phone?: string;
-    name?: string;
-  };
+// Basic email format check (RFC-compliant libraries are overkill here)
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (!listingUrl || !email || !phone || !name) {
+router.post("/submit-lead", leadLimiter, async (req, res) => {
+  const raw = req.body as Record<string, unknown>;
+
+  // Runtime type guard — reject any non-string field before touching .length
+  if (
+    typeof raw["name"] !== "string" ||
+    typeof raw["email"] !== "string" ||
+    typeof raw["phone"] !== "string" ||
+    typeof raw["listingUrl"] !== "string"
+  ) {
     return res.status(400).json({ error: "Missing required fields." });
+  }
+
+  // Trim so whitespace-only values are caught by the non-empty checks below
+  const name = raw["name"].trim();
+  const email = raw["email"].trim();
+  const phone = raw["phone"].trim();
+  const listingUrl = raw["listingUrl"].trim();
+
+  if (!name || !email || !phone || !listingUrl) {
+    return res.status(400).json({ error: "Missing required fields." });
+  }
+
+  // Length bounds to prevent oversized payloads reaching downstream services
+  if (name.length < 2 || name.length > 100) {
+    return res.status(400).json({ error: "Please enter your full name." });
+  }
+  if (email.length > 254 || !EMAIL_RE.test(email)) {
+    return res.status(400).json({ error: "Invalid email address." });
+  }
+  if (phone.length < 7 || phone.length > 30) {
+    return res.status(400).json({ error: "Please enter a valid phone number." });
+  }
+  if (listingUrl.length > 2048) {
+    return res.status(400).json({ error: "Listing URL is too long." });
   }
 
   if (!isAllowedListingDomain(listingUrl)) {
