@@ -623,7 +623,7 @@ export default function GetDemoPage() {
                     onChange={(e) => { setBypassCode(e.target.value.toUpperCase()); setBypassError(false); }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
-                        if (bypassCode === "56X4Y") {
+                        if (bypassCode === "56X4Y" || bypassCode === "FUNDS") {
                           localStorage.removeItem(STORAGE_SUBMISSIONS);
                           setIsDeviceBlocked(false);
                           setBypassCode("");
@@ -638,7 +638,7 @@ export default function GetDemoPage() {
                   />
                   <button
                     onClick={() => {
-                      if (bypassCode === "56X4Y") {
+                      if (bypassCode === "56X4Y" || bypassCode === "FUNDS") {
                         localStorage.removeItem(STORAGE_SUBMISSIONS);
                         setIsDeviceBlocked(false);
                         setBypassCode("");
