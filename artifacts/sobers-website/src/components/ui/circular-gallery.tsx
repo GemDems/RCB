@@ -330,6 +330,8 @@ class App {
   boundOnTouchUp!: () => void;
   boundOnMouseMove!: (e: MouseEvent) => void;
   boundOnMouseLeave!: () => void;
+  boundOnVisibilityChange!: () => void;
+  boundOnWindowBlur!: () => void;
 
   constructor(container: HTMLElement, { items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase }: {
     items?: GalleryItem[]; bend: number; textColor: string;
@@ -422,6 +424,21 @@ class App {
 
   onTouchUp() { this.isDown = false; this.onCheck(); }
 
+  onVisibilityChange() {
+    if (document.hidden) {
+      // Tab hidden — reset drag state so it can't get stuck
+      this.isDown = false;
+    } else {
+      // Tab visible again — sync last to current so direction doesn't glitch on first resume frame
+      this.scroll.last = this.scroll.current;
+    }
+  }
+
+  onWindowBlur() {
+    // Window lost focus (user switched apps / browser) — release drag
+    this.isDown = false;
+  }
+
   onWheel(e: WheelEvent) {
     const delta = e.deltaY || (e as any).wheelDelta || e.detail;
     this.scroll.target += (delta > 0 ? this.scrollSpeed : -this.scrollSpeed) * 0.2;
@@ -468,6 +485,8 @@ class App {
     this.boundOnTouchUp = this.onTouchUp;
     this.boundOnMouseMove = this.onGlowMouseMove;
     this.boundOnMouseLeave = this.onMouseLeave;
+    this.boundOnVisibilityChange = this.onVisibilityChange;
+    this.boundOnWindowBlur = this.onWindowBlur;
     window.addEventListener("resize", this.boundOnResize);
     window.addEventListener("mousewheel", this.boundOnWheel as any);
     window.addEventListener("wheel", this.boundOnWheel);
@@ -479,6 +498,8 @@ class App {
     window.addEventListener("touchend", this.boundOnTouchUp);
     this.container.addEventListener("mousemove", this.boundOnMouseMove);
     this.container.addEventListener("mouseleave", this.boundOnMouseLeave);
+    document.addEventListener("visibilitychange", this.boundOnVisibilityChange);
+    window.addEventListener("blur", this.boundOnWindowBlur);
   }
 
   destroy() {
@@ -494,6 +515,8 @@ class App {
     window.removeEventListener("touchend", this.boundOnTouchUp);
     this.container.removeEventListener("mousemove", this.boundOnMouseMove);
     this.container.removeEventListener("mouseleave", this.boundOnMouseLeave);
+    document.removeEventListener("visibilitychange", this.boundOnVisibilityChange);
+    window.removeEventListener("blur", this.boundOnWindowBlur);
     if (this.renderer?.gl?.canvas?.parentNode) {
       this.renderer.gl.canvas.parentNode.removeChild(this.renderer.gl.canvas);
     }
