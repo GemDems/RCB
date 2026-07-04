@@ -341,7 +341,6 @@ class App {
   boundOnVisibilityChange!: () => void;
   boundOnWindowBlur!: () => void;
   boundOnScroll!: () => void;
-  lastPageScrollY: number = 0;
   isCoarsePointer: boolean = false;
 
   constructor(container: HTMLElement, { items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase }: {
@@ -433,7 +432,13 @@ class App {
     this.scroll.target = (this.scroll as any).position + distance;
   }
 
-  onTouchUp() { this.isDown = false; this.onCheck(); }
+  onTouchUp() {
+    this.isDown = false;
+    // Snap-to-nearest-item on release is for desktop drag. On coarse-pointer devices the
+    // carousel follows absolute scroll position (see onScroll); snapping here would fight
+    // that mapping and cause a jump, so skip it. Mac/desktop behaviour is unchanged.
+    if (!this.isCoarsePointer) this.onCheck();
+  }
 
   onVisibilityChange() {
     if (document.hidden) {
@@ -468,13 +473,14 @@ class App {
   }
 
   onScroll() {
-    // Touch devices fire no wheel events, so drive the carousel from vertical
-    // page scroll instead — mirrors the desktop wheel behaviour.
+    // Touch (coarse-pointer) devices fire no wheel events, so drive the carousel from
+    // the page's scroll POSITION — absolute, not accumulated deltas. iOS momentum and
+    // URL-bar show/hide report large, non-monotonic scrollY jumps; accumulating those
+    // made the carousel lurch ("go crazy"). Mapping position -> target and letting the
+    // existing lerp ease smooth it keeps motion controlled and seamless. The desktop
+    // wheel path is separate and stays untouched.
     const y = window.scrollY || window.pageYOffset || 0;
-    const delta = y - this.lastPageScrollY;
-    this.lastPageScrollY = y;
-    this.scroll.target += delta * 0.012;
-    this.onCheckDebounce();
+    this.scroll.target = y * 0.01;
   }
 
   onCheck() {
@@ -538,7 +544,6 @@ class App {
         ? window.matchMedia("(pointer: coarse)").matches
         : false;
     if (this.isCoarsePointer) {
-      this.lastPageScrollY = window.scrollY || window.pageYOffset || 0;
       window.addEventListener("scroll", this.boundOnScroll, { passive: true });
     }
   }

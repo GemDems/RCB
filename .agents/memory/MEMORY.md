@@ -1,3 +1,3 @@
 - [Three.js in Replit sandbox](threejs-replit-sandbox.md) — WebGL context creation fails; need isWebGLAvailable() probe + dynamic import("three") + try/catch guard before rendering.
 - [Typewriter animation pattern](typewriter-hook.md) — use a mutable ref state machine (not useState for char index) with recursive setTimeout to avoid re-render cascades.
-- [iOS Safari heavy effects](ios-safari-effects.md) — blur+mix-blend layers box-glitch & wheel-only carousels freeze on iPhone; gate with sm:/(pointer:coarse), don't patch the effect.
+- [iOS Safari scroll/effects](ios-safari-effects.md) — wheel-only carousels freeze on touch; drive from ABSOLUTE scrollY position, never accumulated deltas (iOS momentum/URL-bar jumps go haywire); don't swap components per-breakpoint without sign-off.

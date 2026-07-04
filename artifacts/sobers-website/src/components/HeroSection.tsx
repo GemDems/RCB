@@ -133,21 +133,9 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
               </div>
 
               <div className="flex justify-center">
-                {/* Desktop: animated liquid button */}
-                <div className="hidden sm:block">
-                  <LiquidButton href="#">
-                    {title}
-                  </LiquidButton>
-                </div>
-                {/* Mobile: clean gradient pill — LiquidButton's blur + mix-blend layers glitch into a box on iOS Safari */}
-                <a
-                  href="#"
-                  className="sm:hidden relative inline-flex items-center justify-center h-[46px] px-7 rounded-xl overflow-hidden bg-[#050418]"
-                >
-                  <span className="absolute inset-0 bg-[linear-gradient(110deg,#402fb5,#0b06fc_30%,#6e1b60_55%,#cf30aa_80%,#402fb5)] opacity-60" />
-                  <span className="absolute inset-[1.5px] rounded-[10px] bg-[#050418]" />
-                  <span className="relative text-white text-sm font-black tracking-tight whitespace-nowrap">{title}</span>
-                </a>
+                <LiquidButton href="#">
+                  {title}
+                </LiquidButton>
               </div>
 
               <motion.h2
