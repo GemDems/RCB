@@ -2,6 +2,7 @@ import { Router } from "express";
 import { rateLimit } from "express-rate-limit";
 import { Resend } from "resend";
 import { ALLOWED_DOMAINS } from "../lib/allowed-domains-list";
+import { db, leadsTable } from "@workspace/db";
 
 const router = Router();
 
@@ -84,6 +85,14 @@ router.post("/submit-lead", leadLimiter, async (req, res) => {
 
   if (!isSpecificListing(listingUrl)) {
     return res.status(400).json({ error: "Please paste the full link to a specific listing, not just the site homepage." });
+  }
+
+  // Persist lead to database
+  try {
+    await db.insert(leadsTable).values({ name, email, phone, listingUrl });
+  } catch (dbErr) {
+    console.error("DB insert error:", dbErr);
+    // Don't block the user — log and continue to email step
   }
 
   const notifyEmail = process.env.NOTIFY_EMAIL;
