@@ -182,9 +182,90 @@ function ChatTrustedLogos({ visible }: { visible: boolean }) {
 }
 
 /* ─────────────────────────────────────────────
+   Widget label — adaptive "Ask Agent" ↔ "Chat with Us"
+   Starts as "Ask Agent". Switches to "Chat with Us" when
+   the visitor shows passive engagement (time, scroll, or
+   repeated hovers) without opening the chat. Reverts to
+   "Ask Agent" once the chat is open — they're already in.
+───────────────────────────────────────────── */
+const SPRING_SWAP = { type: "spring", stiffness: 460, damping: 30, mass: 0.55 } as const
+
+type WidgetLabel = "Ask Agent" | "Chat with Us"
+
+function useWidgetLabel(isOpen: boolean) {
+  const [label, setLabel] = React.useState<WidgetLabel>("Ask Agent")
+  const hoverCount = React.useRef(0)
+  const switched = React.useRef(false)
+  const isOpenRef = React.useRef(isOpen)
+
+  // Keep ref in sync so timer/scroll closures can check current open state
+  React.useEffect(() => { isOpenRef.current = isOpen }, [isOpen])
+
+  const nudge = React.useCallback(() => {
+    // Never switch while the chat panel is open
+    if (isOpenRef.current) return
+    if (!switched.current) { switched.current = true; setLabel("Chat with Us") }
+  }, [])
+
+  // Revert to "Ask Agent" whenever chat opens; re-enable switching on close
+  React.useEffect(() => {
+    if (isOpen) {
+      setLabel("Ask Agent")
+      switched.current = false   // eligible to nudge again after next close
+    }
+  }, [isOpen])
+
+  // Time-on-page signal: 60 s
+  React.useEffect(() => {
+    const t = window.setTimeout(nudge, 60_000)
+    return () => window.clearTimeout(t)
+  }, [nudge])
+
+  // Scroll-depth signal: 40 % of page height
+  React.useEffect(() => {
+    function onScroll() {
+      const total = document.documentElement.scrollHeight - window.innerHeight
+      if (total > 0 && window.scrollY / total >= 0.4) { nudge(); cleanup() }
+    }
+    function cleanup() { window.removeEventListener("scroll", onScroll) }
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return cleanup
+  }, [nudge])
+
+  // Hover-count signal: 3 hovers without opening
+  const onHover = React.useCallback(() => {
+    if (switched.current) return
+    hoverCount.current += 1
+    if (hoverCount.current >= 3) nudge()
+  }, [nudge])
+
+  return { label, onHover }
+}
+
+/* Rolling text swap — vertical spring scroll between two labels */
+function RollingLabel({ label }: { label: WidgetLabel }) {
+  return (
+    <span className="relative inline-block overflow-hidden" style={{ minWidth: "6ch" }}>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={label}
+          initial={{ y: "110%", opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: "-110%", opacity: 0 }}
+          transition={SPRING_SWAP}
+          className="inline-block whitespace-nowrap"
+        >
+          {label}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  )
+}
+
+/* ─────────────────────────────────────────────
    Context
 ───────────────────────────────────────────── */
-interface CtxShape { showForm: boolean; triggerOpen: () => void; triggerClose: () => void; triggerReset: () => void }
+interface CtxShape { showForm: boolean; triggerOpen: () => void; triggerClose: () => void; triggerReset: () => void; widgetLabel: WidgetLabel; onDockHover: () => void }
 const FormCtx = React.createContext({} as CtxShape)
 const useFormCtx = () => React.useContext(FormCtx)
 
@@ -356,10 +437,10 @@ function ThinkingArea({
    DockBar
 ───────────────────────────────────────────── */
 function DockBar() {
-  const { showForm, triggerOpen } = useFormCtx()
+  const { showForm, triggerOpen, widgetLabel, onDockHover } = useFormCtx()
   return (
     <footer className="mt-auto flex h-[44px] w-full items-center justify-center whitespace-nowrap select-none">
-      <div className="flex items-center justify-center gap-2 px-3 max-sm:h-10 max-sm:px-2">
+      <div className="flex items-center justify-center gap-2 px-3 max-sm:h-10 max-sm:px-2" onMouseEnter={onDockHover}>
         <AnimatePresence mode="wait">
           {showForm ? (
             <motion.div key="blank" initial={{ opacity: 0 }} animate={{ opacity: 0 }} exit={{ opacity: 0 }} className="h-5 w-5" />
@@ -375,7 +456,7 @@ function DockBar() {
           variant="ghost"
           onClick={triggerOpen}
         >
-          <span className="truncate">Chat with Us</span>
+          <RollingLabel label={widgetLabel} />
         </Button>
       </div>
     </footer>
@@ -416,7 +497,7 @@ function InputForm({
   formW: number
   formH: number
 }) {
-  const { triggerClose, triggerReset, showForm } = useFormCtx()
+  const { triggerClose, triggerReset, showForm, widgetLabel } = useFormCtx()
 
   React.useEffect(() => {
     function handleEscape(e: KeyboardEvent) {
@@ -450,7 +531,7 @@ function InputForm({
               </div>
               <span className="flex shrink-0 items-center gap-[6px] select-none text-sm text-foreground/70">
                 <ColorOrb dimension="14px" tones={ORB_TONES} />
-                Chat with Us
+                <RollingLabel label={widgetLabel} />
               </span>
               <div className="flex-1 flex justify-end">
                 <StarButton
@@ -756,9 +837,11 @@ export function AIChatWidget({ externalQuery }: { externalQuery?: string }) {
     [messages, streaming],
   )
 
+  const { label: widgetLabel, onHover: onDockHover } = useWidgetLabel(showForm)
+
   const ctx = React.useMemo(
-    () => ({ showForm, triggerOpen, triggerClose, triggerReset }),
-    [showForm, triggerOpen, triggerClose, triggerReset],
+    () => ({ showForm, triggerOpen, triggerClose, triggerReset, widgetLabel, onDockHover }),
+    [showForm, triggerOpen, triggerClose, triggerReset, widgetLabel, onDockHover],
   )
 
   const { w: formW, h: formH } = useFormDimensions()
