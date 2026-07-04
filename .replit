@@ -47,3 +47,4 @@ channel = "stable-25_05"
 
 [userenv.shared]
 NOTIFY_EMAIL = "demeyesusgabriel@gmail.com"
+FROM_EMAIL = "hello@3dtours.pro"

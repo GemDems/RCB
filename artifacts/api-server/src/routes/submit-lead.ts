@@ -103,6 +103,7 @@ router.post("/submit-lead", leadLimiter, async (req, res) => {
 
   const notifyEmail = process.env.NOTIFY_EMAIL;
   const resendKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
 
   if (!resendKey || !notifyEmail) {
     // Log locally and still return success to the user — don't fail their UX
@@ -115,7 +116,7 @@ router.post("/submit-lead", leadLimiter, async (req, res) => {
 
     await Promise.all([
       resend.emails.send({
-        from: "onboarding@resend.dev",
+        from: fromEmail,
         to: notifyEmail,
         subject: `🏠 New 3D Demo Request from ${name}`,
         html: `
@@ -147,7 +148,7 @@ router.post("/submit-lead", leadLimiter, async (req, res) => {
         `,
       }),
       resend.emails.send({
-        from: "onboarding@resend.dev",
+        from: fromEmail,
         to: email,
         subject: `We've received your 3D demo request, ${name}!`,
         html: `
