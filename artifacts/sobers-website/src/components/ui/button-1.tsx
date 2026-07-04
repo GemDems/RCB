@@ -264,12 +264,13 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* overflow-hidden on this filtered element clips children before blur is applied.
-          Without it, Chromium/WebKit defeat the inner overflow-hidden because filter
-          promotes a compositing layer before clipping. Do NOT move it to a child. */}
+      {/* clip-path on the inner div clips Liquid shapes cross-browser.
+          overflow-hidden alone is defeated by parent filter in Safari/Chrome (compositing
+          layer promoted before clipping). clip-path applies post-compositing and cannot
+          be bypassed. Keep overflow-hidden as a fallback for older engines. */}
       <div className="absolute w-[112.81%] h-[128.57%] top-[8.57%] left-1/2 -translate-x-1/2 filter blur-[19px] opacity-70 overflow-hidden">
         <span className="absolute inset-0 rounded-lg bg-[#d9d9d9] filter blur-[6.5px]" />
-        <div className="relative w-full h-full overflow-hidden rounded-lg">
+        <div className="relative w-full h-full overflow-hidden [clip-path:inset(0_round_8px)] rounded-lg">
           <Liquid isHovered={isHovered} colors={colors} />
         </div>
       </div>

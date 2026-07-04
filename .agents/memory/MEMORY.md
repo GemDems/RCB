@@ -1,3 +1,4 @@
 - [Three.js in Replit sandbox](threejs-replit-sandbox.md) — WebGL context creation fails; need isWebGLAvailable() probe + dynamic import("three") + try/catch guard before rendering.
 - [Typewriter animation pattern](typewriter-hook.md) — use a mutable ref state machine (not useState for char index) with recursive setTimeout to avoid re-render cascades.
 - [iOS Safari scroll/effects](ios-safari-effects.md) — wheel-only carousels freeze on touch; drive from ABSOLUTE scrollY position, never accumulated deltas (iOS momentum/URL-bar jumps go haywire); don't swap components per-breakpoint without sign-off.
+- [Safari filter+overflow clip fix](safari-filter-overflow-clip.md) — CSS filter on an element defeats overflow:hidden on that element's children in Safari/Chrome; use clip-path instead, it clips post-compositing and cannot be bypassed.
