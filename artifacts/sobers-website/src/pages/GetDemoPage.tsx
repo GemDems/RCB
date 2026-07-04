@@ -392,6 +392,8 @@ export default function GetDemoPage() {
 
   // per-device submission limit
   const [isDeviceBlocked, setIsDeviceBlocked] = useState(false);
+  const [bypassCode, setBypassCode] = useState("");
+  const [bypassError, setBypassError] = useState(false);
 
   const confettiRef  = useRef<ConfettiRef>(null);
   const emailRef     = useRef<HTMLInputElement>(null);
@@ -608,6 +610,44 @@ export default function GetDemoPage() {
               <Admonition type="danger" title="Request limit reached" className="w-full text-left">
                 This device has already submitted the maximum number of free demo requests. Please contact us directly if you need further assistance.
               </Admonition>
+              <div className="w-full flex flex-col gap-2">
+                <p className="text-xs text-muted-foreground">Have a contract code? Enter it below to continue.</p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={bypassCode}
+                    onChange={(e) => { setBypassCode(e.target.value.toUpperCase()); setBypassError(false); }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        if (bypassCode === "56X4Y") {
+                          localStorage.removeItem(STORAGE_SUBMISSIONS);
+                          setIsDeviceBlocked(false);
+                          setBypassCode("");
+                        } else {
+                          setBypassError(true);
+                        }
+                      }
+                    }}
+                    placeholder="Enter code"
+                    maxLength={5}
+                    className="flex-1 bg-transparent border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 tracking-widest uppercase text-center focus:outline-none focus:border-violet-500 transition-colors"
+                  />
+                  <button
+                    onClick={() => {
+                      if (bypassCode === "56X4Y") {
+                        localStorage.removeItem(STORAGE_SUBMISSIONS);
+                        setIsDeviceBlocked(false);
+                        setBypassCode("");
+                      } else {
+                        setBypassError(true);
+                      }
+                    }}
+                    className="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-colors">
+                    Apply
+                  </button>
+                </div>
+                {bypassError && <p className="text-xs text-destructive">Invalid code — please try again.</p>}
+              </div>
               <button onClick={() => navigate("/")}
                 className="flex items-center gap-1.5 text-sm text-violet-400 hover:text-violet-300 transition-colors font-medium">
                 <ArrowLeft className="w-4 h-4" /> Back to site
