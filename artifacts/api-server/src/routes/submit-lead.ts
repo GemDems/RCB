@@ -104,7 +104,9 @@ router.post("/submit-lead", leadLimiter, async (req, res) => {
 
   const notifyEmail = process.env.NOTIFY_EMAIL;
   const resendKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
+  const rawFrom = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
+  // Display name improves trust signals — "3D Tours Pro <hello@3dtours.pro>"
+  const fromEmail = rawFrom.includes("resend.dev") ? rawFrom : `3D Tours Pro <${rawFrom}>`;
 
   if (!resendKey || !notifyEmail) {
     // Log locally and still return success to the user — don't fail their UX
@@ -123,6 +125,7 @@ router.post("/submit-lead", leadLimiter, async (req, res) => {
       resend.emails.send({
         from: fromEmail,
         to: notifyEmail,
+        reply_to: email,
         subject: `New 3D Demo Request from ${name}`,
         text: `New Demo Request\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nListing: ${listingUrl}\n\n-- 3D Tours Pro`,
         html: `
@@ -156,7 +159,12 @@ router.post("/submit-lead", leadLimiter, async (req, res) => {
       resend.emails.send({
         from: fromEmail,
         to: email,
+        reply_to: `3D Tours Pro <${process.env.FROM_EMAIL ?? "hello@3dtours.pro"}>`,
         subject: `Your 3D demo request — we'll be in touch soon`,
+        headers: {
+          "List-Unsubscribe": `<mailto:${process.env.FROM_EMAIL ?? "hello@3dtours.pro"}?subject=unsubscribe>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
         text: `Hi ${name},\n\nThanks for reaching out to 3D Tours Pro. We've received your request for a free 3D walkthrough demo and a member of our team will be in touch within 24 hours to get it scheduled.\n\nYour listing: ${listingUrl}\n\n-- The 3D Tours Pro Team`,
         html: `
           <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#0d0d0d;color:#f0f0f0;border-radius:12px;">
