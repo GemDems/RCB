@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { rateLimit } from "express-rate-limit";
 import { Resend } from "resend";
+import { ReplitConnectors } from "@replit/connectors-sdk";
 import { ALLOWED_DOMAINS } from "../lib/allowed-domains-list";
 import { db, leadsTable } from "@workspace/db";
 
@@ -41,6 +42,57 @@ function isSpecificListing(url: string): boolean {
 
 // Basic email format check (RFC-compliant libraries are overkill here)
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function sendSmsNotification({
+  name,
+  email,
+  phone,
+  listingUrl,
+}: {
+  name: string;
+  email: string;
+  phone: string;
+  listingUrl: string;
+}): Promise<void> {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const fromNumber = process.env.TWILIO_FROM_NUMBER;
+  const toNumber = process.env.NOTIFY_PHONE;
+
+  if (!accountSid || !fromNumber || !toNumber) {
+    console.warn("SMS skipped: TWILIO_ACCOUNT_SID, TWILIO_FROM_NUMBER, or NOTIFY_PHONE not set.");
+    return;
+  }
+
+  const connectors = new ReplitConnectors();
+  const formBody = new URLSearchParams({
+    To: toNumber,
+    From: fromNumber,
+    Body:
+      `🏠 New 3D demo request!\n` +
+      `Name: ${name}\n` +
+      `Email: ${email}\n` +
+      `Phone: ${phone}\n` +
+      `Listing: ${listingUrl}`,
+  });
+
+  const response = await connectors.proxy(
+    "twilio",
+    `/2010-04-01/Accounts/${accountSid}/Messages.json`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formBody.toString(),
+    }
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Twilio API error ${response.status}: ${text}`);
+  }
+
+  const data = (await response.json()) as { sid: string };
+  console.log("SMS notification sent:", data.sid);
+}
 
 router.post("/submit-lead", leadLimiter, async (req, res) => {
   const raw = req.body as Record<string, unknown>;
@@ -100,6 +152,11 @@ router.post("/submit-lead", leadLimiter, async (req, res) => {
     console.error("DB insert error:", dbErr);
     // Don't block the user — log and continue to email step
   }
+
+  // Fire-and-forget SMS — never blocks submission or email flow
+  sendSmsNotification({ name, email, phone, listingUrl }).catch((err) => {
+    console.error("SMS notification unexpected error:", err);
+  });
 
   const notifyEmail = process.env.NOTIFY_EMAIL;
   const resendKey = process.env.RESEND_API_KEY;
