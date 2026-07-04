@@ -460,7 +460,7 @@ export default function GetDemoPage() {
       incrementSubmissionCount();
       submitPromise.then((succeeded) => { if (succeeded) saveContactOnDevice(email, phone); });
       // Auto-redirect home after brief success display
-      setTimeout(() => navigate("/"), 2500);
+      setTimeout(() => navigate("/"), 10000);
     }, loadingDuration);
   };
 
@@ -488,7 +488,11 @@ export default function GetDemoPage() {
     else if (authStep === "contact") { setAuthStep("listing"); setEmail(""); setPhone(""); setContactDuplicateError(null); }
   };
 
-  const closeModal = () => { setModalStatus("closed"); setModalErrorMessage(""); };
+  const closeModal = () => {
+    setModalStatus("closed");
+    setModalErrorMessage("");
+    navigate("/");
+  };
 
   // auto-focus next field — exact replica pattern
   useEffect(() => {
