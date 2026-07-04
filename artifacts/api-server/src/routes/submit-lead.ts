@@ -113,38 +113,61 @@ router.post("/submit-lead", leadLimiter, async (req, res) => {
   try {
     const resend = new Resend(resendKey);
 
-    await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: notifyEmail,
-      subject: `🏠 New 3D Demo Request from ${name}`,
-      html: `
-        <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#0d0d0d;color:#f0f0f0;border-radius:12px;">
-          <h2 style="color:#a78bfa;margin-bottom:4px;">New Demo Request</h2>
-          <p style="color:#9ca3af;margin-top:0;font-size:14px;">Someone just requested a free 3D walkthrough demo.</p>
-          <hr style="border:none;border-top:1px solid #2a2a2a;margin:20px 0;" />
-          <table style="width:100%;border-collapse:collapse;">
-            <tr>
-              <td style="padding:8px 0;color:#9ca3af;font-size:14px;width:120px;">Name</td>
-              <td style="padding:8px 0;font-weight:600;font-size:14px;">${name}</td>
-            </tr>
-            <tr>
-              <td style="padding:8px 0;color:#9ca3af;font-size:14px;">Email</td>
-              <td style="padding:8px 0;font-weight:600;font-size:14px;">${email}</td>
-            </tr>
-            <tr>
-              <td style="padding:8px 0;color:#9ca3af;font-size:14px;">Phone</td>
-              <td style="padding:8px 0;font-weight:600;font-size:14px;">${phone}</td>
-            </tr>
-            <tr>
-              <td style="padding:8px 0;color:#9ca3af;font-size:14px;">Listing URL</td>
-              <td style="padding:8px 0;font-size:14px;"><a href="${listingUrl}" style="color:#a78bfa;">${listingUrl}</a></td>
-            </tr>
-          </table>
-          <hr style="border:none;border-top:1px solid #2a2a2a;margin:20px 0;" />
-          <p style="font-size:12px;color:#6b7280;margin:0;">Sent from 3D Tours Pro</p>
-        </div>
-      `,
-    });
+    await Promise.all([
+      resend.emails.send({
+        from: "onboarding@resend.dev",
+        to: notifyEmail,
+        subject: `🏠 New 3D Demo Request from ${name}`,
+        html: `
+          <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#0d0d0d;color:#f0f0f0;border-radius:12px;">
+            <h2 style="color:#a78bfa;margin-bottom:4px;">New Demo Request</h2>
+            <p style="color:#9ca3af;margin-top:0;font-size:14px;">Someone just requested a free 3D walkthrough demo.</p>
+            <hr style="border:none;border-top:1px solid #2a2a2a;margin:20px 0;" />
+            <table style="width:100%;border-collapse:collapse;">
+              <tr>
+                <td style="padding:8px 0;color:#9ca3af;font-size:14px;width:120px;">Name</td>
+                <td style="padding:8px 0;font-weight:600;font-size:14px;">${name}</td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0;color:#9ca3af;font-size:14px;">Email</td>
+                <td style="padding:8px 0;font-weight:600;font-size:14px;">${email}</td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0;color:#9ca3af;font-size:14px;">Phone</td>
+                <td style="padding:8px 0;font-weight:600;font-size:14px;">${phone}</td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0;color:#9ca3af;font-size:14px;">Listing URL</td>
+                <td style="padding:8px 0;font-size:14px;"><a href="${listingUrl}" style="color:#a78bfa;">${listingUrl}</a></td>
+              </tr>
+            </table>
+            <hr style="border:none;border-top:1px solid #2a2a2a;margin:20px 0;" />
+            <p style="font-size:12px;color:#6b7280;margin:0;">Sent from 3D Tours Pro</p>
+          </div>
+        `,
+      }),
+      resend.emails.send({
+        from: "onboarding@resend.dev",
+        to: email,
+        subject: `We've received your 3D demo request, ${name}!`,
+        html: `
+          <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#0d0d0d;color:#f0f0f0;border-radius:12px;">
+            <h2 style="color:#a78bfa;margin-bottom:4px;">Thanks for your request!</h2>
+            <p style="color:#d1d5db;margin-top:8px;font-size:15px;line-height:1.6;">
+              Hi ${name}, we've received your request for a free 3D walkthrough demo and we're on it.
+            </p>
+            <p style="color:#d1d5db;font-size:15px;line-height:1.6;">
+              A member of our team will be in touch within <strong style="color:#f0f0f0;">24 hours</strong> to get your demo scheduled.
+            </p>
+            <hr style="border:none;border-top:1px solid #2a2a2a;margin:20px 0;" />
+            <p style="color:#9ca3af;font-size:14px;margin-bottom:4px;">Your listing:</p>
+            <p style="font-size:14px;margin-top:0;"><a href="${listingUrl}" style="color:#a78bfa;word-break:break-all;">${listingUrl}</a></p>
+            <hr style="border:none;border-top:1px solid #2a2a2a;margin:20px 0;" />
+            <p style="font-size:12px;color:#6b7280;margin:0;">© 3D Tours Pro — you're receiving this because you submitted a demo request.</p>
+          </div>
+        `,
+      }),
+    ]);
 
     return res.json({ success: true, emailed: true });
   } catch (err) {
