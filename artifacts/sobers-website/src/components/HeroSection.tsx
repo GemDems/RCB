@@ -128,20 +128,11 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
           <div className="max-w-screen-xl z-10 mx-auto px-4 pt-10 pb-14 md:pt-14 md:pb-28 gap-12 md:px-8">
             <div className="space-y-5 max-w-3xl mx-auto text-center">
 
-              {/* isolation:isolate — creates a stacking context so z-[-1] glow layers
-                  inside HeroSearchBar are scoped here, not to the parent <section>.
-                  Without this, RetroGrid (z-auto, earlier in DOM) paints over the
-                  z:[-1] conic-gradient glows, clipping / obscuring them. */}
               <div className="flex justify-center mb-12 [isolation:isolate]">
                 <HeroSearchBar onSearch={onSearch} />
               </div>
 
-              {/* liquid-hero-btn + isolation:isolate — scopes the mix-blend-difference
-                  compositing so it cannot bleed onto the page background. The companion
-                  CSS rule in index.css promotes the inner overflow-hidden inside the
-                  glow layer to its own GPU composite layer, fixing the Chromium/WebKit
-                  bug where filter:blur on a parent defeats overflow:hidden on children. */}
-              <div className="flex justify-center liquid-hero-btn [isolation:isolate]">
+              <div className="flex justify-center [isolation:isolate]">
                 <LiquidButton href="#">
                   {title}
                 </LiquidButton>
