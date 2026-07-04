@@ -111,10 +111,14 @@ router.post("/submit-lead", leadLimiter, async (req, res) => {
     return res.json({ success: true, emailed: false });
   }
 
+  if (!fromEmail.includes("@") || fromEmail === "onboarding@resend.dev") {
+    console.warn("FROM_EMAIL is not set to a verified branded address; falling back to Resend sandbox sender.");
+  }
+
   try {
     const resend = new Resend(resendKey);
 
-    await Promise.all([
+    const [notifyResult, confirmResult] = await Promise.allSettled([
       resend.emails.send({
         from: fromEmail,
         to: notifyEmail,
@@ -170,9 +174,23 @@ router.post("/submit-lead", leadLimiter, async (req, res) => {
       }),
     ]);
 
-    return res.json({ success: true, emailed: true });
+    // Resend returns API-level errors in the resolved value, not as thrown exceptions
+    if (notifyResult.status === "rejected" || notifyResult.value?.error) {
+      const err = notifyResult.status === "rejected" ? notifyResult.reason : notifyResult.value.error;
+      console.error("Resend notify email failed:", JSON.stringify(err, null, 2));
+    }
+    if (confirmResult.status === "rejected" || confirmResult.value?.error) {
+      const err = confirmResult.status === "rejected" ? confirmResult.reason : confirmResult.value.error;
+      console.error("Resend confirmation email failed:", JSON.stringify(err, null, 2));
+    }
+
+    const emailed =
+      notifyResult.status === "fulfilled" && !notifyResult.value?.error &&
+      confirmResult.status === "fulfilled" && !confirmResult.value?.error;
+
+    return res.json({ success: true, emailed });
   } catch (err: any) {
-    console.error("Resend error:", JSON.stringify(err?.message ?? err, null, 2));
+    console.error("Resend unexpected error:", JSON.stringify(err?.message ?? err, null, 2));
     if (err?.statusCode) console.error("Resend status:", err.statusCode, err.name);
     // Don't surface email errors to the user — their submission still succeeded
     return res.json({ success: true, emailed: false });
