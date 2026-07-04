@@ -179,7 +179,8 @@ router.post("/submit-lead", leadLimiter, async (req, res) => {
       resend.emails.send({
         from: fromEmail,
         to: notifyEmail,
-        subject: `🏠 New 3D Demo Request from ${name}`,
+        subject: `New 3D Demo Request from ${name}`,
+        text: `New Demo Request\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nListing: ${listingUrl}\n\n-- 3D Tours Pro`,
         html: `
           <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#0d0d0d;color:#f0f0f0;border-radius:12px;">
             <h2 style="color:#a78bfa;margin-bottom:4px;">New Demo Request</h2>
@@ -211,7 +212,8 @@ router.post("/submit-lead", leadLimiter, async (req, res) => {
       resend.emails.send({
         from: fromEmail,
         to: email,
-        subject: `We've received your 3D demo request, ${name}!`,
+        subject: `Your 3D demo request — we'll be in touch soon`,
+        text: `Hi ${name},\n\nThanks for reaching out to 3D Tours Pro. We've received your request for a free 3D walkthrough demo and a member of our team will be in touch within 24 hours to get it scheduled.\n\nYour listing: ${listingUrl}\n\n-- The 3D Tours Pro Team`,
         html: `
           <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#0d0d0d;color:#f0f0f0;border-radius:12px;">
             <h2 style="color:#a78bfa;margin-bottom:4px;">Thanks for your request!</h2>
@@ -225,7 +227,7 @@ router.post("/submit-lead", leadLimiter, async (req, res) => {
             <p style="color:#9ca3af;font-size:14px;margin-bottom:4px;">Your listing:</p>
             <p style="font-size:14px;margin-top:0;"><a href="${listingUrl}" style="color:#a78bfa;word-break:break-all;">${listingUrl}</a></p>
             <hr style="border:none;border-top:1px solid #2a2a2a;margin:20px 0;" />
-            <p style="font-size:12px;color:#6b7280;margin:0;">© 3D Tours Pro — you're receiving this because you submitted a demo request.</p>
+            <p style="font-size:12px;color:#6b7280;margin:0;">You're receiving this because you submitted a demo request at 3dtours.pro.</p>
           </div>
         `,
       }),
