@@ -269,7 +269,7 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
           promotes a compositing layer before clipping. Do NOT move it to a child. */}
       <div className="absolute w-[112.81%] h-[128.57%] top-[8.57%] left-1/2 -translate-x-1/2 filter blur-[19px] opacity-70 overflow-hidden">
         <span className="absolute inset-0 rounded-lg bg-[#d9d9d9] filter blur-[6.5px]" />
-        <div className="relative w-full h-full overflow-hidden rounded-lg">
+        <div className="relative w-full h-full overflow-hidden rounded-lg [clip-path:inset(0_round_0.5rem)]">
           <Liquid isHovered={isHovered} colors={colors} />
         </div>
       </div>
