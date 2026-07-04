@@ -1,11 +1,12 @@
 import * as React from "react"
-import { motion, useScroll, useTransform, useMotionTemplate } from "motion/react"
+import { motion, useScroll, useTransform, useMotionTemplate, AnimatePresence } from "motion/react"
 import { cn } from "@/lib/utils"
 import { ActiveUsersWidget } from "@/components/ActiveUsersWidget"
 import { ShinyButton } from "@/components/ui/ShinyButton"
 import { LiquidButton } from "@/components/ui/button-1"
 import { HeroSearchBar } from "@/components/ui/HeroSearchBar"
 import { CircularGallery, type GalleryItem } from "@/components/ui/circular-gallery"
+import { useIsPhone } from "@/hooks/use-mobile"
 import img1 from "@assets/8B754FA9-B539-4EDE-A384-3B5B16B5EEFA_1_102_o_1782968356121.jpeg"
 import img2 from "@assets/F71337D6-6D79-4E12-A266-5B02EDDCB6E7_1_102_o_1782968356123.jpeg"
 import img3 from "@assets/DE8299A5-8F9C-4E2B-94C9-C0CD35770D9B_1_102_o_1782968356124.jpeg"
@@ -83,6 +84,16 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
     ref,
   ) => {
     const containerRef = React.useRef<HTMLDivElement>(null)
+    const isPhone = useIsPhone()
+
+    // Mobile notice: fade-in → hold → fade-out, fires once on mount
+    const [noticeVisible, setNoticeVisible] = React.useState(false)
+    React.useEffect(() => {
+      if (!isPhone) return
+      const showTimer = setTimeout(() => setNoticeVisible(true),  600)
+      const hideTimer = setTimeout(() => setNoticeVisible(false), 4600) // 600 + 4000 hold
+      return () => { clearTimeout(showTimer); clearTimeout(hideTimer) }
+    }, [isPhone])
 
     // Track global window scroll — bidirectional: gallery appears on scroll down, disappears on scroll back up
     const { scrollY } = useScroll()
@@ -128,7 +139,30 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
           <div className="max-w-screen-xl z-10 mx-auto px-4 pt-10 pb-14 md:pt-14 md:pb-28 gap-12 md:px-8">
             <div className="space-y-5 max-w-3xl mx-auto text-center">
 
-              <div className="flex justify-center mb-12 [isolation:isolate]">
+              <div className="relative flex justify-center mb-12 [isolation:isolate]">
+                {/* Mobile-only "best viewed on desktop" notice — absolutely positioned so it never shifts layout */}
+                <AnimatePresence>
+                  {isPhone && noticeVisible && (
+                    <motion.div
+                      key="desktop-notice"
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.45, ease: "easeOut" }}
+                      className="absolute bottom-[calc(100%+10px)] left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none z-10"
+                    >
+                      <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium
+                        bg-white/5 border border-white/10 text-white/70 backdrop-blur-md
+                        shadow-[0_0_12px_2px_rgba(120,80,220,0.18)]">
+                        <svg className="w-3 h-3 opacity-70 shrink-0" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                          <rect x="1" y="3" width="14" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+                          <path d="M5 12.5h6M8 12.5v1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                        </svg>
+                        For the best experience, view on a desktop
+                      </span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 <HeroSearchBar onSearch={onSearch} />
               </div>
 

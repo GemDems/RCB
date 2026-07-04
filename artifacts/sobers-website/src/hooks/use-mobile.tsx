@@ -17,3 +17,27 @@ export function useIsMobile() {
 
   return !!isMobile
 }
+
+/**
+ * Returns true only on actual phones — combines a small viewport with a
+ * coarse pointer (touch) so that a narrowed desktop browser window does NOT
+ * trigger the flag.
+ */
+export function useIsPhone() {
+  const [isPhone, setIsPhone] = React.useState<boolean | undefined>(undefined)
+
+  React.useEffect(() => {
+    const narrow  = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
+    const coarse  = window.matchMedia("(pointer: coarse)")
+    const check   = () => setIsPhone(narrow.matches && coarse.matches)
+    narrow.addEventListener("change", check)
+    coarse.addEventListener("change", check)
+    check()
+    return () => {
+      narrow.removeEventListener("change", check)
+      coarse.removeEventListener("change", check)
+    }
+  }, [])
+
+  return !!isPhone
+}
