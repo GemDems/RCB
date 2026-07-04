@@ -170,8 +170,9 @@ router.post("/submit-lead", leadLimiter, async (req, res) => {
     ]);
 
     return res.json({ success: true, emailed: true });
-  } catch (err) {
-    console.error("Resend error:", err);
+  } catch (err: any) {
+    console.error("Resend error:", JSON.stringify(err?.message ?? err, null, 2));
+    if (err?.statusCode) console.error("Resend status:", err.statusCode, err.name);
     // Don't surface email errors to the user — their submission still succeeded
     return res.json({ success: true, emailed: false });
   }
