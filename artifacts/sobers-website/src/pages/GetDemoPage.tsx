@@ -533,10 +533,16 @@ export default function GetDemoPage() {
                 {modalSteps[modalSteps.length - 1].icon}
                 <p className="text-lg font-medium text-foreground">{modalSteps[modalSteps.length - 1].message}</p>
                 <p className="text-sm text-muted-foreground">
-                  We'll review your listing and reach out to <span className="text-violet-400 font-medium">{email}</span> shortly.
+                  We'll review your listing and reach out to <span className="text-violet-400 font-medium">{email}</span> within 24 hours.
                 </p>
+                <div className="flex items-start gap-2 rounded-lg bg-violet-500/10 border border-violet-500/20 px-3 py-2.5 text-left">
+                  <span className="text-base leading-none mt-0.5">📬</span>
+                  <p className="text-xs text-violet-300/80 leading-relaxed">
+                    Can't find our email? Check your <span className="font-semibold text-violet-300">spam or promotions</span> folder — sometimes it lands there first. Mark it as "Not spam" so you never miss an update from us.
+                  </p>
+                </div>
                 <button onClick={() => navigate("/")}
-                  className="mt-2 flex items-center gap-2 text-sm text-violet-400 hover:text-violet-300 transition-colors font-medium">
+                  className="mt-1 flex items-center gap-2 text-sm text-violet-400 hover:text-violet-300 transition-colors font-medium">
                   <ArrowLeft className="w-4 h-4" /> Back to site
                 </button>
               </div>
