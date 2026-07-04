@@ -445,7 +445,7 @@ export default function GetDemoPage() {
     const submitPromise = fetch(`${API_BASE}/api/submit-lead`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ listingUrl, email, phone, name }),
+      body: JSON.stringify({ listingUrl, email, phone, name, website: "" }),
     })
       .then((r) => r.json())
       .then((d: { success?: boolean }) => d.success === true)

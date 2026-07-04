@@ -45,6 +45,12 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 router.post("/submit-lead", leadLimiter, async (req, res) => {
   const raw = req.body as Record<string, unknown>;
 
+  // Honeypot — bots typically fill hidden fields; real users never see it
+  if (typeof raw["website"] === "string" && raw["website"].length > 0) {
+    // Silent success: bot gets no signal it was caught
+    return res.json({ success: true, emailed: false });
+  }
+
   // Runtime type guard — reject any non-string field before touching .length
   if (
     typeof raw["name"] !== "string" ||
