@@ -375,7 +375,7 @@ function DockBar() {
           variant="ghost"
           onClick={triggerOpen}
         >
-          <span className="truncate">Ask Agent</span>
+          <span className="truncate">Chat with Us</span>
         </Button>
       </div>
     </footer>
@@ -450,7 +450,7 @@ function InputForm({
               </div>
               <span className="flex shrink-0 items-center gap-[6px] select-none text-sm text-foreground/70">
                 <ColorOrb dimension="14px" tones={ORB_TONES} />
-                Ask Agent
+                Chat with Us
               </span>
               <div className="flex-1 flex justify-end">
                 <StarButton
