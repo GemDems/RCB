@@ -129,7 +129,7 @@ class Media {
   x: number = 0; scale: number = 1; padding: number = 2;
   speed: number = 0; isBefore: boolean = false; isAfter: boolean = false;
   mouseX: number = -10; mouseY: number = -10;
-  videoEl?: HTMLVideoElement; texture?: Texture; lastVideoTime: number = -1;
+  videoEl?: HTMLVideoElement; texture?: Texture; lastVideoTime: number = -1; isResuming: boolean = false;
 
   constructor({ geometry, gl, image, video, videoEl, index, length, renderer, scene, screen, text, viewport, bend, textColor, borderRadius = 0, font }: {
     geometry: Plane; gl: OGLRenderingContext; image: string; video?: string; videoEl?: HTMLVideoElement; index: number;
@@ -272,6 +272,14 @@ class Media {
     this.program.uniforms.uTime.value += 0.04;
     this.program.uniforms.uSpeed.value = this.speed;
     if (this.videoEl && this.texture && this.videoEl.readyState >= 2) {
+      // Resume if the browser paused the video (tab switch, scroll, resource pressure).
+      // Guard with a flag so we only fire play() once per pause event, not every frame.
+      if (this.videoEl.paused && !this.isResuming) {
+        this.isResuming = true;
+        this.videoEl.play().catch(() => {}).finally(() => { this.isResuming = false; });
+      } else if (!this.videoEl.paused) {
+        this.isResuming = false;
+      }
       const t = this.videoEl.currentTime;
       if (t !== this.lastVideoTime) {
         this.lastVideoTime = t;
@@ -429,8 +437,19 @@ class App {
       // Tab hidden — reset drag state so it can't get stuck
       this.isDown = false;
     } else {
-      // Tab visible again — sync last to current so direction doesn't glitch on first resume frame
+      // Tab visible again — sync scroll so direction doesn't glitch on first resume frame
       this.scroll.last = this.scroll.current;
+      // Browsers pause video elements when the tab is hidden; resume each unique element once
+      if (this.medias) {
+        const seen = new Set<HTMLVideoElement>();
+        this.medias.forEach((media) => {
+          if (media.videoEl && media.videoEl.paused && !seen.has(media.videoEl)) {
+            seen.add(media.videoEl);
+            media.isResuming = true;
+            media.videoEl.play().catch(() => {}).finally(() => { media.isResuming = false; });
+          }
+        });
+      }
     }
   }
 
