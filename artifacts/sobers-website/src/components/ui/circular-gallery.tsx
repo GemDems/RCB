@@ -340,6 +340,9 @@ class App {
   boundOnMouseLeave!: () => void;
   boundOnVisibilityChange!: () => void;
   boundOnWindowBlur!: () => void;
+  boundOnScroll!: () => void;
+  lastPageScrollY: number = 0;
+  isCoarsePointer: boolean = false;
 
   constructor(container: HTMLElement, { items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase }: {
     items?: GalleryItem[]; bend: number; textColor: string;
@@ -464,6 +467,16 @@ class App {
     this.onCheckDebounce();
   }
 
+  onScroll() {
+    // Touch devices fire no wheel events, so drive the carousel from vertical
+    // page scroll instead — mirrors the desktop wheel behaviour.
+    const y = window.scrollY || window.pageYOffset || 0;
+    const delta = y - this.lastPageScrollY;
+    this.lastPageScrollY = y;
+    this.scroll.target += delta * 0.012;
+    this.onCheckDebounce();
+  }
+
   onCheck() {
     if (!this.medias || !this.medias[0]) return;
     const width = this.medias[0].width;
@@ -519,6 +532,15 @@ class App {
     this.container.addEventListener("mouseleave", this.boundOnMouseLeave);
     document.addEventListener("visibilitychange", this.boundOnVisibilityChange);
     window.addEventListener("blur", this.boundOnWindowBlur);
+    this.boundOnScroll = this.onScroll;
+    this.isCoarsePointer =
+      typeof window.matchMedia === "function"
+        ? window.matchMedia("(pointer: coarse)").matches
+        : false;
+    if (this.isCoarsePointer) {
+      this.lastPageScrollY = window.scrollY || window.pageYOffset || 0;
+      window.addEventListener("scroll", this.boundOnScroll, { passive: true });
+    }
   }
 
   destroy() {
@@ -536,6 +558,7 @@ class App {
     this.container.removeEventListener("mouseleave", this.boundOnMouseLeave);
     document.removeEventListener("visibilitychange", this.boundOnVisibilityChange);
     window.removeEventListener("blur", this.boundOnWindowBlur);
+    window.removeEventListener("scroll", this.boundOnScroll);
     if (this.renderer?.gl?.canvas?.parentNode) {
       this.renderer.gl.canvas.parentNode.removeChild(this.renderer.gl.canvas);
     }

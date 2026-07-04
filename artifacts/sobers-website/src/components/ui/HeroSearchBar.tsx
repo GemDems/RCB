@@ -119,7 +119,7 @@ export function HeroSearchBar({ onSearch, className }: HeroSearchBarProps) {
               onKeyDown={handleKeyDown}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
-              className="bg-[#010201] border-none w-[452px] h-[56px] rounded-lg text-white px-[59px] text-lg focus:outline-none placeholder-gray-400"
+              className="bg-[#010201] border-none w-[min(452px,86vw)] h-[56px] rounded-lg text-white px-[59px] text-base sm:text-lg focus:outline-none placeholder-gray-400"
             />
           </form>
 
