@@ -56,12 +56,16 @@ async function sendSmsNotification({
 }): Promise<void> {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const fromNumber = process.env.TWILIO_FROM_NUMBER;
-  const toNumber = process.env.NOTIFY_PHONE;
+  const rawToNumber = process.env.NOTIFY_PHONE;
 
-  if (!accountSid || !fromNumber || !toNumber) {
+  if (!accountSid || !fromNumber || !rawToNumber) {
     console.warn("SMS skipped: TWILIO_ACCOUNT_SID, TWILIO_FROM_NUMBER, or NOTIFY_PHONE not set.");
     return;
   }
+
+  // Normalise to E.164 — Twilio rejects numbers without a leading +country code
+  const digits = rawToNumber.replace(/\D/g, "");
+  const toNumber = digits.startsWith("1") ? `+${digits}` : `+1${digits}`;
 
   const connectors = new ReplitConnectors();
   const formBody = new URLSearchParams({
