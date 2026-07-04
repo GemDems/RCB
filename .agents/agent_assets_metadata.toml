@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "1hcKumBN1s0fv28EbMHn6"
+uri = "file://artifacts/sobers-website/public/favicon.svg"
+type = "image"
+title = "Favicon — 3D Cube"
