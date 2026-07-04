@@ -533,7 +533,7 @@ export default function GetDemoPage() {
                 {modalSteps[modalSteps.length - 1].icon}
                 <p className="text-lg font-medium text-foreground">{modalSteps[modalSteps.length - 1].message}</p>
                 <p className="text-sm text-muted-foreground">
-                  We'll review your listing and reach out to <span className="text-violet-400 font-medium">{email}</span> within 24 hours.
+                  We've sent a confirmation to <span className="text-violet-400 font-medium">{email}</span> and will be in touch within 24 hours.
                 </p>
                 <div className="flex items-start gap-2 rounded-lg bg-violet-500/10 border border-violet-500/20 px-3 py-2.5 text-left">
                   <span className="text-base leading-none mt-0.5">📬</span>
