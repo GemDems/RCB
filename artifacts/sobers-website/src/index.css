@@ -455,3 +455,21 @@
 @media (prefers-reduced-motion: reduce) {
   .color-orb::before { animation: none; }
 }
+
+/* ─── LiquidButton glow-layer overflow fix ───────────────────────────────────
+   Root cause: CSS filter:blur() on a parent element defeats overflow:hidden on
+   child elements in Chromium and WebKit (the browser composites the subtree into
+   a layer BEFORE clipping, letting oversized Liquid SVG shapes escape their
+   overflow-hidden container and render as large white blobs on the page).
+   Fix: promote the clipping div to its own GPU compositing layer via
+   transform:translateZ(0). GPU-composited layers always enforce overflow:hidden
+   correctly, even when a parent has a CSS filter.
+   Selector chain: .liquid-hero-btn (HeroSection wrapper) → <a> (LiquidButton
+   root) → div:first-child (outer glow div that carries filter:blur(19px)) →
+   div (the inner overflow-hidden that clips the Liquid animation shapes).
+   ─────────────────────────────────────────────────────────────────────────── */
+.liquid-hero-btn > a > div:first-child > div {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+}
