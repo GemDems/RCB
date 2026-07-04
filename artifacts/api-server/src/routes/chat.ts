@@ -143,10 +143,12 @@ Rewrite this reply to maximise conversion. Make it more compelling, more specifi
     res.end();
   } catch (err) {
     console.error("Chat error:", err);
+    const friendlyMessage =
+      "Sorry, the assistant is unavailable right now — try again in a moment.";
     if (!res.headersSent) {
-      res.status(500).json({ error: "AI service error" });
+      res.status(500).json({ error: friendlyMessage });
     } else {
-      res.write(`data: ${JSON.stringify({ error: "Stream error" })}\n\n`);
+      res.write(`data: ${JSON.stringify({ error: friendlyMessage })}\n\n`);
       res.end();
     }
   }

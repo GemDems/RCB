@@ -269,7 +269,7 @@ interface CtxShape { showForm: boolean; triggerOpen: () => void; triggerClose: (
 const FormCtx = React.createContext({} as CtxShape)
 const useFormCtx = () => React.useContext(FormCtx)
 
-interface Msg { role: "user" | "assistant"; content: string }
+interface Msg { role: "user" | "assistant"; content: string; isError?: boolean }
 
 const WELCOME = "Hi! We create a free 3D walkthrough demo of your actual property — no commitment needed. Ask me anything about how it works, whether you're an estate agent, property developer, or host on Airbnb, Vrbo, Booking.com, or any other platform. What would you like to know?"
 
@@ -555,10 +555,21 @@ function InputForm({
                       className={`max-w-[90%] rounded-2xl px-3 py-2 text-[13px] leading-relaxed ${
                         msg.role === "user"
                           ? "bg-primary text-primary-foreground rounded-br-sm"
+                          : msg.isError
+                          ? "bg-destructive/10 border border-destructive/25 text-destructive rounded-bl-sm"
                           : "bg-muted text-foreground rounded-bl-sm"
                       }`}
                     >
-                      {msg.content || <span className="opacity-40 italic text-xs">Composing…</span>}
+                      {msg.isError ? (
+                        <span className="flex items-start gap-1.5">
+                          <span className="mt-[1px] shrink-0 opacity-70">⚠</span>
+                          <span>{msg.content}</span>
+                        </span>
+                      ) : msg.content ? (
+                        msg.content
+                      ) : (
+                        <span className="opacity-40 italic text-xs">Composing…</span>
+                      )}
                     </div>
                   </div>
 
@@ -774,6 +785,17 @@ export function AIChatWidget({ externalQuery }: { externalQuery?: string }) {
       abortRef.current = ctrl
       let assistantContent = ""
 
+      const showError = async (message: string) => {
+        const elapsed = Date.now() - thinkStartRef.current
+        const remaining = MIN_THINK_MS - elapsed
+        if (remaining > 0) await new Promise((r) => setTimeout(r, remaining))
+        setThinking(false)
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant" as const, content: message, isError: true },
+        ])
+      }
+
       try {
         const res = await fetch("/api/chat", {
           method: "POST",
@@ -781,7 +803,20 @@ export function AIChatWidget({ externalQuery }: { externalQuery?: string }) {
           body: JSON.stringify({ messages: allMsgs }),
           signal: ctrl.signal,
         })
-        if (!res.ok) throw new Error("API error")
+
+        if (!res.ok) {
+          let message = "Sorry, the assistant is unavailable right now — try again in a moment."
+          if (res.status === 429) {
+            message = "You've sent too many messages — please wait a moment and try again."
+          } else {
+            try {
+              const body = await res.json()
+              if (body?.error) message = body.error
+            } catch {}
+          }
+          await showError(message)
+          return
+        }
 
         const elapsed = Date.now() - thinkStartRef.current
         const remaining = MIN_THINK_MS - elapsed
@@ -794,8 +829,9 @@ export function AIChatWidget({ externalQuery }: { externalQuery?: string }) {
         if (!reader) throw new Error("No stream")
         const decoder = new TextDecoder()
         let buf = ""
+        let streamErrored = false
 
-        while (true) {
+        outer: while (true) {
           const { done, value } = await reader.read()
           if (done) break
           buf += decoder.decode(value, { stream: true })
@@ -805,7 +841,21 @@ export function AIChatWidget({ externalQuery }: { externalQuery?: string }) {
             if (!line.startsWith("data: ")) continue
             try {
               const parsed = JSON.parse(line.slice(6))
-              if (parsed.done) break
+              if (parsed.done) break outer
+              if (parsed.error) {
+                streamErrored = true
+                // Replace the empty placeholder bubble with the error
+                setMessages((prev) => {
+                  const next = [...prev]
+                  next[next.length - 1] = {
+                    role: "assistant",
+                    content: parsed.error,
+                    isError: true,
+                  }
+                  return next
+                })
+                break outer
+              }
               if (parsed.content) {
                 assistantContent += parsed.content
                 const snap = assistantContent
@@ -818,16 +868,14 @@ export function AIChatWidget({ externalQuery }: { externalQuery?: string }) {
             } catch {}
           }
         }
+
+        // If stream errored mid-way and we had partial content, keep what arrived
+        void streamErrored
       } catch (err: unknown) {
         if (err instanceof Error && err.name !== "AbortError") {
-          const elapsed = Date.now() - thinkStartRef.current
-          const remaining = MIN_THINK_MS - elapsed
-          if (remaining > 0) await new Promise((r) => setTimeout(r, remaining))
-          setThinking(false)
-          setMessages((prev) => [
-            ...prev,
-            { role: "assistant", content: "Sorry, something went wrong. Please try again." },
-          ])
+          await showError(
+            "Sorry, the assistant is unavailable right now — try again in a moment."
+          )
         }
       } finally {
         setThinking(false)
