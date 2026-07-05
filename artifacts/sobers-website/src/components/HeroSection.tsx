@@ -128,6 +128,11 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
           <div className="max-w-screen-xl z-10 mx-auto px-4 pt-10 pb-14 md:pt-14 md:pb-28 gap-12 md:px-8">
             <div className="space-y-5 max-w-3xl mx-auto text-center">
 
+              {/* Mobile-only notice — hidden on md and above */}
+              <p className="md:hidden text-xs text-white/50 tracking-wide">
+                🖥️ Best experienced on desktop
+              </p>
+
               <div className="flex justify-center mb-12 [isolation:isolate]">
                 <HeroSearchBar onSearch={onSearch} />
               </div>
