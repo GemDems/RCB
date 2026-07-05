@@ -88,12 +88,20 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
 
     // Mobile notice: fade-in → hold → fade-out, fires once on mount
     const [noticeVisible, setNoticeVisible] = React.useState(false)
+    const [noticeTapped, setNoticeTapped]   = React.useState(false)
+    const hideTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
     React.useEffect(() => {
       if (!isPhone) return
-      const showTimer = setTimeout(() => setNoticeVisible(true),  600)
-      const hideTimer = setTimeout(() => setNoticeVisible(false), 4600) // 600 + 4000 hold
-      return () => { clearTimeout(showTimer); clearTimeout(hideTimer) }
+      const showTimer = setTimeout(() => setNoticeVisible(true), 600)
+      hideTimerRef.current = setTimeout(() => setNoticeVisible(false), 4600)
+      return () => { clearTimeout(showTimer); if (hideTimerRef.current) clearTimeout(hideTimerRef.current) }
     }, [isPhone])
+    function handleNoticeTap() {
+      if (noticeTapped) return
+      setNoticeTapped(true)
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
+      hideTimerRef.current = setTimeout(() => setNoticeVisible(false), 3000)
+    }
 
     // Track global window scroll — bidirectional: gallery appears on scroll down, disappears on scroll back up
     const { scrollY } = useScroll()
@@ -149,7 +157,8 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -4 }}
                       transition={{ duration: 0.45, ease: "easeOut" }}
-                      className="absolute bottom-[calc(100%+10px)] left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none z-10"
+                      className="absolute bottom-[calc(100%+10px)] left-1/2 -translate-x-1/2 whitespace-nowrap z-10 cursor-pointer"
+                      onClick={handleNoticeTap}
                     >
                       <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium
                         bg-white/5 border border-white/10 text-white/70 backdrop-blur-md
@@ -158,7 +167,7 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
                           <rect x="1" y="3" width="14" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
                           <path d="M5 12.5h6M8 12.5v1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                         </svg>
-                        For the best experience, view on a desktop
+                        {noticeTapped ? "Due to high traffic, recommended on web" : "For the best experience, view on a desktop"}
                       </span>
                     </motion.div>
                   )}
