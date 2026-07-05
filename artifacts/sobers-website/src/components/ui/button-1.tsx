@@ -261,7 +261,7 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
   return (
     <a
       href={href}
-      className={`relative inline-block sm:w-[280px] sm:h-[48px] w-14 h-[2.7em] mx-auto group dark:bg-black bg-white dark:border-white border-black border-2 sm:rounded-xl rounded-lg ${className}`}
+      className={`relative inline-block w-[280px] h-[48px] mx-auto group dark:bg-black bg-white dark:border-white border-black border-2 rounded-xl ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -287,10 +287,8 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
         ))}
         <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[40%] w-[70.8%] h-[42.85%] rounded-lg filter blur-[15px] bg-[#006]" />
       </div>
-      {/* Desktop: full text label — Mobile: same text, tiny to fit */}
-      <span className="absolute inset-0 flex items-center justify-center sm:px-6 px-1 sm:rounded-xl rounded-lg group-hover:text-yellow-400 text-white text-center leading-tight">
-        <span className="sm:hidden text-[6.5px] font-sans font-black tracking-tight leading-tight">{children}</span>
-        <span className="hidden sm:inline text-sm font-sans font-black tracking-tight whitespace-nowrap">{children}</span>
+      <span className="absolute inset-0 flex items-center justify-center px-6 rounded-xl group-hover:text-yellow-400 text-white text-sm font-sans font-black tracking-tight text-center leading-none whitespace-nowrap">
+        {children}
       </span>
     </a>
   );
