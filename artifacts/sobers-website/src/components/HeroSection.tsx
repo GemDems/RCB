@@ -84,6 +84,13 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
   ) => {
     const containerRef = React.useRef<HTMLDivElement>(null)
 
+    const [noticeVisible, setNoticeVisible] = React.useState(true)
+    const [showInfo, setShowInfo] = React.useState(false)
+    React.useEffect(() => {
+      const t = setTimeout(() => setNoticeVisible(false), 5000)
+      return () => clearTimeout(t)
+    }, [])
+
     // Track global window scroll — bidirectional: gallery appears on scroll down, disappears on scroll back up
     const { scrollY } = useScroll()
     const galleryOpacity = useTransform(scrollY, [0, 120], [0, 1])
@@ -128,10 +135,24 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
           <div className="max-w-screen-xl z-10 mx-auto px-4 pt-10 pb-14 md:pt-14 md:pb-28 gap-12 md:px-8">
             <div className="space-y-5 max-w-3xl mx-auto text-center">
 
-              {/* Mobile-only notice — hidden on md and above */}
-              <p className="md:hidden text-xs text-white/50 tracking-wide">
-                🖥️ Best experienced on desktop
-              </p>
+              {/* Mobile-only notice — fades after 5 s, hidden on md+ */}
+              <div className={`md:hidden transition-opacity duration-700 ${noticeVisible ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+                <div className="relative inline-flex items-center gap-2 text-xs text-white/50 tracking-wide">
+                  <span>Best experienced on desktop</span>
+                  <button
+                    onClick={() => setShowInfo(v => !v)}
+                    aria-label="More info"
+                    className="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full border border-white/25 text-white/40 hover:text-white/70 hover:border-white/50 transition-colors text-[10px] font-serif italic leading-none flex-shrink-0"
+                  >
+                    i
+                  </button>
+                  {showInfo && (
+                    <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 text-center text-[11px] text-white/60 bg-white/10 backdrop-blur-sm border border-white/10 rounded-lg px-3 py-2 z-10 leading-relaxed">
+                      Due to high traffic, some features are best experienced on desktop.
+                    </span>
+                  )}
+                </div>
+              </div>
 
               <div className="flex justify-center mb-12 [isolation:isolate]">
                 <HeroSearchBar onSearch={onSearch} />
