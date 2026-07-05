@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "motion/react";
 import * as React from "react";
-import { Github } from "lucide-react";
+
 
 type ColorKey =
   | "color1"
@@ -287,10 +287,10 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
         ))}
         <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[40%] w-[70.8%] h-[42.85%] rounded-lg filter blur-[15px] bg-[#006]" />
       </div>
-      {/* Desktop: full text label — Mobile: compact Github icon */}
-      <span className="absolute inset-0 flex items-center justify-center px-4 sm:rounded-xl rounded-lg group-hover:text-yellow-400 text-white leading-none whitespace-nowrap">
-        <Github className="sm:hidden inline-block fill-white group-hover:fill-yellow-400 w-6 h-6 flex-shrink-0" />
-        <span className="hidden sm:inline text-sm font-sans font-black tracking-tight">{children}</span>
+      {/* Desktop: full text label — Mobile: same text, tiny to fit */}
+      <span className="absolute inset-0 flex items-center justify-center sm:px-6 px-1 sm:rounded-xl rounded-lg group-hover:text-yellow-400 text-white text-center leading-tight">
+        <span className="sm:hidden text-[6.5px] font-sans font-black tracking-tight leading-tight">{children}</span>
+        <span className="hidden sm:inline text-sm font-sans font-black tracking-tight whitespace-nowrap">{children}</span>
       </span>
     </a>
   );
